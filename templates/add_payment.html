@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Payment</title>
+</head>
+<body>
+
+    <h1>Add Payment</h1>
+
+    <form method="POST">
+
+        <label>Member:</label>
+        <select name="member_id" required>
+            {% for member in members %}
+                <option value="{{ member[0] }}">
+                    {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label>Amount:</label>
+        <input type="number" name="amount" step="0.01" required>
+
+        <br><br>
+
+        <label>Payment Date:</label>
+        <input type="date" name="payment_date" required>
+
+        <br><br>
+
+        <label>Payment Type:</label>
+        <select name="payment_type" required>
+            <option value="Membership">Membership</option>
+            <option value="Contribution">Contribution</option>
+            <option value="Event">Event</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <br><br>
+
+        <label>Status:</label>
+        <select name="status" required>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+        </select>
+
+        <br><br>
+
+        <button type="submit">Add Payment</button>
+
+    </form>
+
+    <br>
+
+    <a href="/payments">View Payments</a>
+
+</body>
+</html>
