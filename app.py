@@ -175,6 +175,78 @@ def payments():
 
     return render_template("payments.html", payments=payments)
 
+@app.route("/events")
+def events():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT event_id, event_name, event_date, venue, description, status
+        FROM Events
+        ORDER BY event_date DESC
+    """)
+
+    events = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return render_template("events.html", events=events)
+
+@app.route("/add_event", methods=["GET", "POST"])
+def add_event():
+
+    if request.method == "POST":
+
+        event_name = request.form["event_name"]
+        event_date = request.form["event_date"]
+        venue = request.form["venue"]
+        description = request.form["description"]
+        status = request.form["status"]
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # Find the highest existing event ID
+        cursor.execute("""
+            SELECT event_id
+            FROM Events
+            WHERE event_id LIKE 'EVT/%'
+            ORDER BY event_id DESC
+            LIMIT 1
+        """)
+
+        result = cursor.fetchone()
+
+        if result:
+            last_id = result[0]
+            number = int(last_id.replace("EVT/", ""))
+            new_event_id = f"EVT/{number + 1:03d}"
+        else:
+            new_event_id = "EVT/001"
+
+        cursor.execute("""
+            INSERT INTO Events
+            (event_id, event_name, event_date, venue, description, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            new_event_id,
+            event_name,
+            event_date,
+            venue,
+            description,
+            status
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/events")
+
+    return render_template("add_event.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

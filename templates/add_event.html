@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Event - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1f4e78;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Add Event</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label for="event_name">Event Name</label>
+        <input type="text" id="event_name" name="event_name" required>
+
+        <label for="event_date">Event Date</label>
+        <input type="date" id="event_date" name="event_date" required>
+
+        <label for="venue">Venue</label>
+        <input type="text" id="venue" name="venue">
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description"></textarea>
+
+        <label for="status">Status</label>
+        <select id="status" name="status" required>
+            <option value="Planned">Planned</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <button type="submit">Add Event</button>
+
+    </form>
+
+    <a href="/events" class="back">← Back to Events</a>
+
+</div>
+
+</body>
+</html>
