@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            margin: 30px auto;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #1f4e78;
+        }
+
+        .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 15px;
+            background-color: #1f4e78;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Reports</h2>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+
+        <div class="card">
+            <h2>Total Members</h2>
+            <div class="number">{{ total_members }}</div>
+        </div>
+
+        <div class="card">
+            <h2>Total Payments</h2>
+            <div class="number">{{ total_payments }}</div>
+        </div>
+
+        <div class="card">
+            <h2>Total Events</h2>
+            <div class="number">{{ total_events }}</div>
+        </div>
+
+        <div class="card">
+            <h2>Total Activities</h2>
+            <div class="number">{{ total_activities }}</div>
+        </div>
+
+        <div class="card">
+            <h2>Attendance Records</h2>
+            <div class="number">{{ total_attendance }}</div>
+        </div>
+
+    </div>
+
+    <a href="/" class="button">Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

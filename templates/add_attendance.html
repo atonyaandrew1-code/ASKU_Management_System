@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Attendance - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button, .button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Add Attendance</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label for="member_id">Member</label>
+        <select name="member_id" id="member_id" required>
+            <option value="">Select Member</option>
+
+            {% for member in members %}
+            <option value="{{ member[0] }}">
+                {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+
+        <label for="activity_id">Activity</label>
+        <select name="activity_id" id="activity_id" required>
+            <option value="">Select Activity</option>
+
+            {% for activity in activities %}
+            <option value="{{ activity[0] }}">
+                {{ activity[0] }} - {{ activity[1] }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+
+        <label for="attendance_date">Attendance Date</label>
+        <input type="date" name="attendance_date" id="attendance_date" required>
+
+
+        <label for="status">Status</label>
+        <select name="status" id="status" required>
+            <option value="">Select Status</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+        </select>
+
+
+        <button type="submit">Save Attendance</button>
+
+        <a href="/attendance" class="button">Back to Attendance</a>
+
+    </form>
+
+</div>
+
+</body>
+</html>

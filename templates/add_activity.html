@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Activity - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button, .button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Add Activity</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label for="activity_name">Activity Name</label>
+        <input
+            type="text"
+            name="activity_name"
+            id="activity_name"
+            required
+        >
+
+        <label for="activity_date">Activity Date</label>
+        <input
+            type="date"
+            name="activity_date"
+            id="activity_date"
+            required
+        >
+
+        <label for="location">Location</label>
+        <input
+            type="text"
+            name="location"
+            id="location"
+        >
+
+        <label for="created_by">Created By</label>
+        <input
+            type="text"
+            name="created_by"
+            id="created_by"
+        >
+
+        <button type="submit">Save Activity</button>
+
+        <a href="/activities" class="button">Back to Activities</a>
+
+    </form>
+
+</div>
+
+</body>
+</html>
