@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Transaction - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1f4e78;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Add Transaction</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label>Member</label>
+        <select name="member_id" required>
+            <option value="">Select Member</option>
+
+            {% for member in members %}
+            <option value="{{ member[0] }}">
+                {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <label>Transaction Type</label>
+        <select name="transaction_type" required>
+            <option value="">Select Type</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+        </select>
+
+        <label>Amount</label>
+        <input type="number" name="amount" step="0.01" min="0" required>
+
+        <label>Date</label>
+        <input type="date" name="date" required>
+
+        <label>Description</label>
+        <textarea name="description"></textarea>
+
+        <label>Reference Number</label>
+        <input type="text" name="reference_No">
+
+        <label>Time</label>
+        <input type="datetime-local" name="time">
+
+        <button type="submit">Save Transaction</button>
+
+    </form>
+
+    <a href="/transactions" class="back">Back to Transactions</a>
+
+</div>
+
+</body>
+</html>

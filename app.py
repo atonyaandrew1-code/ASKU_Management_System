@@ -454,6 +454,109 @@ def reports():
         total_attendance=total_attendance
     )
 
+@app.route("/transactions")
+def transactions():
 
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            transaction_id,
+            member_id,
+            transaction_type,
+            amount,
+            date,
+            description,
+            "reference_No",
+            "Time"
+        FROM Transactions
+        ORDER BY date DESC, "Time" DESC
+    """)
+
+    transactions = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return render_template(
+        "transactions.html",
+        transactions=transactions
+    )
+
+@app.route("/add_transaction", methods=["GET", "POST"])
+def add_transaction():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    if request.method == "POST":
+
+        member_id = request.form["member_id"]
+        transaction_type = request.form["transaction_type"]
+        amount = request.form["amount"]
+        date = request.form["date"]
+        description = request.form["description"]
+        reference_no = request.form["reference_No"]
+        transaction_time = request.form["time"]
+
+        cursor.execute("""
+            SELECT MAX(transaction_id)
+            FROM Transactions
+        """)
+
+        result = cursor.fetchone()
+
+        if result[0] is not None:
+            new_transaction_id = result[0] + 1
+        else:
+            new_transaction_id = 1
+
+        cursor.execute("""
+            INSERT INTO Transactions
+            (
+                transaction_id,
+                member_id,
+                transaction_type,
+                amount,
+                date,
+                description,
+                "reference_No",
+                "Time"
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            new_transaction_id,
+            member_id,
+            transaction_type,
+            amount,
+            date,
+            description,
+            reference_no,
+            transaction_time
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/transactions")
+
+    cursor.execute("""
+        SELECT member_id, first_name, last_name
+        FROM Members
+        ORDER BY member_id
+    """)
+
+    members = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return render_template(
+        "add_transaction.html",
+        members=members
+    )
 if __name__ == "__main__":
     app.run(debug=True)
