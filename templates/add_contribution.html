@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Attendance - ASKU Management System</title>
+    <title>Add Contribution - ASKU Management System</title>
 
     <style>
         body {
@@ -21,7 +21,7 @@
             width: 50%;
             margin: 30px auto;
             background-color: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 8px;
         }
 
@@ -38,19 +38,21 @@
             box-sizing: border-box;
         }
 
-        button, .button {
+        button {
             margin-top: 20px;
-            padding: 10px 15px;
+            padding: 10px 20px;
             background-color: #1f4e78;
             color: white;
             border: none;
             border-radius: 5px;
-            text-decoration: none;
             cursor: pointer;
         }
 
-        .button {
+        .back {
             display: inline-block;
+            margin-top: 15px;
+            color: #1f4e78;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -59,60 +61,81 @@
 
 <header>
     <h1>ASKU Management System</h1>
-    <h2>Add Attendance</h2>
+    <h2>Add Contribution</h2>
 </header>
 
 <div class="container">
 
     <form method="POST">
 
-        <label for="member_id">Member</label>
-        <select name="member_id" id="member_id" required>
+        <label>Member</label>
+
+        <select name="member_id" required>
+
             <option value="">Select Member</option>
 
             {% for member in members %}
+
             <option value="{{ member[0] }}">
                 {{ member[0] }} - {{ member[1] }} {{ member[2] }}
             </option>
+
             {% endfor %}
 
         </select>
 
+        <label>Amount</label>
 
-        <label for="activity_id">Activity</label>
-        <select name="activity_id" id="activity_id" required>
-            <option value="">Select Activity</option>
+        <input
+            type="number"
+            name="amount"
+            step="0.01"
+            min="0"
+            required
+        >
 
-            {% for activity in activities %}
-            <option value="{{ activity[0] }}">
-                {{ activity[0] }} - {{ activity[1] }}
-            </option>
-            {% endfor %}
+        <label>Contribution Date</label>
+
+        <input
+            type="date"
+            name="contribution_date"
+            required
+        >
+
+        <label>Payment Method</label>
+
+        <select name="payment_method" required>
+
+            <option value="">Select Payment Method</option>
+            <option value="M-Pesa">M-Pesa</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank">Bank</option>
+            <option value="Other">Other</option>
 
         </select>
 
+        <label>Reference Number</label>
 
-        <label for="attendance_date">Attendance Date</label>
-        <input type="date" name="attendance_date" id="attendance_date" required>
+        <input
+            type="text"
+            name="reference_number"
+        >
 
+        <button type="submit">
+            Save Contribution
+        </button>
 
-        <label for="status">Status</label>
-        <select name="status" id="status" required>
-            <option value="">Select Status</option>
-            <option value="Present">Present</option>
-            <option value="Absent">Absent</option>
-        </select>
+    </form>
 
+    <a href="/contributions" class="back">
+        ← Back to Contributions
+    </a>
 
-        <button type="submit">Save Attendance</button>
+    <br>
 
-        <a href="/attendance" class="button">Back to Attendance</a>
-
-      </form>
-
-      <br>
-
-      <a href="/">← Back to Dashboard</a>
+    <a href="/" class="back">
+        ← Back to Dashboard
+    </a>
 
 </div>
 

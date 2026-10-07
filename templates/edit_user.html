@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Change User Role - ASKU Management System</title>
+</head>
+
+<body>
+
+    <h1>ASKU Management System</h1>
+
+    <h2>Change User Role</h2>
+
+    <p>
+        <strong>Username:</strong> {{ user[1] }}
+    </p>
+
+    <form method="POST">
+
+        <label>Select New Role:</label><br>
+
+        <select name="role_id" required>
+
+            {% for role in roles %}
+
+                <option value="{{ role[0] }}"
+                    {% if role[0] == user[2] %}selected{% endif %}>
+                    {{ role[1] }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+        <button type="submit">Update Role</button>
+
+    </form>
+
+    <br>
+
+    <a href="/users">Back to Users</a>
+
+</body>
+</html>

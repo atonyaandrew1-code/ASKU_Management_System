@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Member - ASKU Management System</title>
+</head>
+
+<body>
+
+    <h1>ASKU Management System</h1>
+
+    <h2>Edit Member</h2>
+
+    <form method="POST">
+
+        <label>Member ID:</label><br>
+        <input type="text" value="{{ member[0] }}" disabled>
+
+        <br><br>
+
+        <label>First Name:</label><br>
+        <input type="text" name="first_name" value="{{ member[1] }}" required>
+
+        <br><br>
+
+        <label>Last Name:</label><br>
+        <input type="text" name="last_name" value="{{ member[2] }}" required>
+
+        <br><br>
+
+        <label>Phone:</label><br>
+        <input type="text" name="phone" value="{{ member[3] }}">
+
+        <br><br>
+
+        <label>Email:</label><br>
+        <input type="email" name="email" value="{{ member[4] }}">
+
+        <br><br>
+
+        <label>Date Joined:</label><br>
+        <input type="date" name="date_joined" value="{{ member[5] }}" required>
+
+        <br><br>
+
+        <label>Status:</label><br>
+        <select name="status" required>
+
+            <option value="ACTIVE"
+                {% if member[6] == "ACTIVE" %}selected{% endif %}>
+                ACTIVE
+            </option>
+
+            <option value="INACTIVE"
+                {% if member[6] == "INACTIVE" %}selected{% endif %}>
+                INACTIVE
+            </option>
+
+        </select>
+
+        <br><br>
+
+        <button type="submit">Update Member</button>
+
+    </form>
+
+    <br>
+
+    <a href="/members">Back to Members</a>
+
+</body>
+</html>

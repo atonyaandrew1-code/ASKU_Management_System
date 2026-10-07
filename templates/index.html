@@ -70,7 +70,7 @@
 
     <div class="header">
         <h1>ASKU Management System</h1>
-        <p>Association of Students of KU</p>
+        <p>Association of Actuarial Students of KU</p>
     </div>
 
     <div class="container">
@@ -79,6 +79,40 @@
             <h2>Dashboard</h2>
             <p>Welcome to the ASKU Management System.</p>
         </div>
+
+        <div class="cards">
+
+    <div class="card">
+        <h2>{{ total_members }}</h2>
+        <p>Total Members</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ total_payments }}</h2>
+        <p>Total Payments</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ total_events }}</h2>
+        <p>Total Events</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ total_activities }}</h2>
+        <p>Total Activities</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ total_attendance }}</h2>
+        <p>Attendance Records</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ total_transactions }}</h2>
+        <p>Total Transactions</p>
+    </div>
+
+</div>
 
         <div class="cards">
 
@@ -102,6 +136,13 @@
                 <p>Record and track ASKU financial transactions.</p>
 
                 <a href="/transactions">View Transactions</a>
+            </div>
+            <div class="card">
+                <h2>Contributions</h2>
+                <p>Manage member contributions.</p>
+
+                <a href="/contributions">View Contributions</a>
+                <a href="/add_contribution">Add Contribution</a>
             </div>
 
             <div class="card">

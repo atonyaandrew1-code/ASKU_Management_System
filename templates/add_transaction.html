@@ -88,6 +88,9 @@
             <option value="">Select Type</option>
             <option value="Income">Income</option>
             <option value="Expense">Expense</option>
+            <option value="Contribution">Contribution</option>
+            <option value="Payment">Payment</option>
+            <option value="Other">Other</option>
         </select>
 
         <label>Amount</label>
@@ -100,7 +103,7 @@
         <textarea name="description"></textarea>
 
         <label>Reference Number</label>
-        <input type="text" name="reference_No">
+        <input type="text" name="reference_no">
 
         <label>Time</label>
         <input type="datetime-local" name="time">
@@ -109,9 +112,11 @@
 
     </form>
 
-    <a href="/transactions" class="back">Back to Transactions</a>
+    <a href="/transactions" class="back">← Back to Transactions</a>
 
-</div>
+    <a href="/" class="back">← Back to Dashboard</a>
 
-</body>
-</html>
+    </div>
+
+    </body>
+    </html>

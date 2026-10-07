@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Payments</title>
+    <title>Payments - ASKU Management System</title>
 </head>
+
 <body>
 
     <h1>Payments</h1>
+    <h2>Total Amount Paid: KSh {{ total_amount }}</h2>
 
     <div>
         <a href="/add_payment">Add Payment</a>
@@ -13,24 +15,39 @@
     </div>
 
     <table border="1">
+
         <tr>
             <th>Payment ID</th>
             <th>Member ID</th>
-            <th>amount</th>
+            <th>Member Name</th>
+            <th>Amount</th>
             <th>Payment Date</th>
             <th>Payment Type</th>
             <th>Status</th>
         </tr>
 
         {% for payment in payments %}
+
         <tr>
             <td>{{ payment[0] }}</td>
             <td>{{ payment[1] }}</td>
-            <td>{{ payment[2] }}</td>
-            <td>{{ payment[3] }}</td>
+
+            <td>
+                {{ payment[2] }} {{ payment[3] }}
+            </td>
+
             <td>{{ payment[4] }}</td>
             <td>{{ payment[5] }}</td>
+            <td>{{ payment[6] }}</td>
+            <td>{{ payment[7] }}</td>
         </tr>
+
+        {% else %}
+
+        <tr>
+            <td colspan="7">No payments found.</td>
+        </tr>
+
         {% endfor %}
 
     </table>
