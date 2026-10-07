@@ -4,6 +4,7 @@ import bcrypt
 
 app = Flask(__name__)
 app.secret_key = "asku-management-secret-key"
+app.config["SESSION_PERMANENT"] = False
 
 @app.before_request
 def require_login():
@@ -136,24 +137,79 @@ def edit_member(member_id):
         date_joined = request.form["date_joined"]
         status = request.form["status"]
 
-        cursor.execute("""
-            UPDATE Members
-            SET first_name = %s,
-                last_name = %s,
-                phone = %s,
-                email = %s,
-                date_joined = %s,
-                status = %s
-            WHERE member_id = %s
-        """, (
-            first_name,
-            last_name,
-            phone,
-            email,
-            date_joined,
-            status,
-            member_id
-        ))
+        # Only Admin can change Member ID
+        if session.get("role_name", "").lower() == "admin":
+
+            new_member_id = request.form["new_member_id"].strip().upper()
+
+            # Validate Member ID format
+            import re
+
+            if not re.fullmatch(r"ASKU/\d{3}", new_member_id):
+                cursor.close()
+                connection.close()
+                return "Invalid Member ID. Use the format ASKU/001.", 400
+
+            # Check whether the new ID already exists
+            if new_member_id != member_id:
+
+                cursor.execute("""
+                    SELECT 1
+                    FROM Members
+                    WHERE member_id = %s
+                """, (new_member_id,))
+
+                if cursor.fetchone():
+                    cursor.close()
+                    connection.close()
+                    return "That Member ID already exists.", 400
+
+            # Update member
+            # ON UPDATE CASCADE automatically updates:
+            # attendance, contributions, payments,
+            # transactions, and users.
+            cursor.execute("""
+                UPDATE Members
+                SET member_id = %s,
+                    first_name = %s,
+                    last_name = %s,
+                    phone = %s,
+                    email = %s,
+                    date_joined = %s,
+                    status = %s
+                WHERE member_id = %s
+            """, (
+                new_member_id,
+                first_name,
+                last_name,
+                phone,
+                email,
+                date_joined,
+                status,
+                member_id
+            ))
+
+        else:
+
+            # Non-admin users cannot change Member ID
+            cursor.execute("""
+                UPDATE Members
+                SET first_name = %s,
+                    last_name = %s,
+                    phone = %s,
+                    email = %s,
+                    date_joined = %s,
+                    status = %s
+                WHERE member_id = %s
+            """, (
+                first_name,
+                last_name,
+                phone,
+                email,
+                date_joined,
+                status,
+                member_id
+            ))
 
         connection.commit()
 
@@ -162,6 +218,7 @@ def edit_member(member_id):
 
         return redirect("/members")
 
+    # Load member
     cursor.execute("""
         SELECT
             member_id,
@@ -184,7 +241,6 @@ def edit_member(member_id):
         "edit_member.html",
         member=member
     )
-
 
 @app.route("/add_member", methods=["GET", "POST"])
 def add_member():
@@ -921,10 +977,17 @@ def login():
         cursor = connection.cursor()
 
         cursor.execute("""
-            SELECT user_id, username, password_hash, role_id
-            FROM users
-            WHERE username = %s
-              AND is_active = TRUE
+            SELECT
+                u.user_id,
+                u.username,
+                u.password_hash,
+                u.role_id,
+                r.role_name
+            FROM users u
+            JOIN roles r
+                ON u.role_id = r.role_id
+            WHERE u.username = %s
+              AND u.is_active = TRUE
         """, (username,))
 
         user = cursor.fetchone()
@@ -939,6 +1002,7 @@ def login():
             session["user_id"] = user[0]
             session["username"] = user[1]
             session["role_id"] = user[3]
+            session["role_name"] = user[4]
 
             return redirect("/")
 

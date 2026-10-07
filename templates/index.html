@@ -114,14 +114,16 @@
 
 </div>
 
-        <div class="cards">
-
             <div class="card">
                 <h2>Members</h2>
                 <p>Manage ASKU members.</p>
 
                 <a href="/members">View Members</a>
                 <a href="/add_member">Add Member</a>
+
+                {% if session.get("role_name", "").lower() == "admin" %}
+                   <a href="/users">Manage Users</a>
+                {% endif %}
             </div>
 
             <div class="card">

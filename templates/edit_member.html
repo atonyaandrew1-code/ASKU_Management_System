@@ -12,8 +12,13 @@
 
     <form method="POST">
 
-        <label>Member ID:</label><br>
+    <label>Member ID:</label><br>
+
+    {% if session["role_name"] == "admin" %}
+        <input type="text" name="new_member_id" value="{{ member[0] }}" required>
+    {% else %}
         <input type="text" value="{{ member[0] }}" disabled>
+    {% endif %}
 
         <br><br>
 
