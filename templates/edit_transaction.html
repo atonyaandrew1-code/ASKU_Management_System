@@ -1,0 +1,189 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Transaction - ASKU Management System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        .header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 60%;
+            margin: 30px auto;
+        }
+
+        .form-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #163a5a;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #1f4e78;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>ASKU Management System</h1>
+    <p>Edit Transaction</p>
+</div>
+
+<div class="container">
+
+    <div class="form-box">
+
+        <h2>Edit Transaction</h2>
+
+        <form method="POST">
+
+            <label>Transaction ID</label>
+
+            <input
+                type="text"
+                value="{{ transaction[0] }}"
+                disabled
+            >
+
+            <label>Member</label>
+
+            <select name="member_id" required>
+
+                {% for member in members %}
+
+                    <option
+                        value="{{ member[0] }}"
+                        {% if member[0] == transaction[1] %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <label>Transaction Type</label>
+
+            <input
+                type="text"
+                name="transaction_type"
+                value="{{ transaction[2] }}"
+                required
+            >
+
+            <label>Amount</label>
+
+            <input
+                type="number"
+                name="amount"
+                step="0.01"
+                value="{{ transaction[3] }}"
+                required
+            >
+
+            <label>Date</label>
+
+            <input
+                type="date"
+                name="date"
+                value="{{ transaction[4] }}"
+                required
+            >
+
+            <label>Description</label>
+
+            <textarea
+                name="description"
+            >{{ transaction[5] }}</textarea>
+
+            <label>Reference Number</label>
+
+            <input
+                type="text"
+                name="reference_no"
+                value="{{ transaction[6] }}"
+            >
+
+            <label>Time</label>
+
+            <input
+                type="text"
+                name="time"
+                value="{{ transaction[7] }}"
+            >
+
+            <button type="submit">
+                Save Changes
+            </button>
+
+        </form>
+
+        <a href="/transactions" class="back">
+            ← Back to Transactions
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+```

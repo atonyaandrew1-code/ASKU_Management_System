@@ -1,0 +1,156 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Attendance - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button,
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #1f4e78;
+            color: white;
+        }
+
+        .back-button {
+            background-color: #777;
+            color: white;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Edit Attendance</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label>Attendance ID</label>
+        <input
+            type="text"
+            value="{{ attendance[0] }}"
+            disabled
+        >
+
+        <label>Member</label>
+        <select name="member_id" required>
+
+            {% for member in members %}
+
+            <option
+                value="{{ member[0] }}"
+                {% if member[0] == attendance[1] %}selected{% endif %}
+            >
+                {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <label>Activity</label>
+        <select name="activity_id" required>
+
+            {% for activity in activities %}
+
+            <option
+                value="{{ activity[0] }}"
+                {% if activity[0] == attendance[2] %}selected{% endif %}
+            >
+                {{ activity[1] }} - {{ activity[2] }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <label>Attendance Date</label>
+        <input
+            type="date"
+            name="attendance_date"
+            value="{{ attendance[3] }}"
+            required
+        >
+
+        <label>Status</label>
+        <select name="status" required>
+
+            <option
+                value="Present"
+                {% if attendance[4] == "Present" %}selected{% endif %}
+            >
+                Present
+            </option>
+
+            <option
+                value="Absent"
+                {% if attendance[4] == "Absent" %}selected{% endif %}
+            >
+                Absent
+            </option>
+
+        </select>
+
+        <button type="submit">Save Changes</button>
+
+        <a href="/attendance" class="back-button">
+            Back to Attendance
+        </a>
+
+    </form>
+
+</div>
+
+</body>
+</html>
+```

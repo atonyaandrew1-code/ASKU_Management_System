@@ -1,0 +1,165 @@
+```html id="w4q2nk"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Payment - ASKU Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button,
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #1f4e78;
+            color: white;
+        }
+
+        .back-button {
+            background-color: #777;
+            color: white;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ASKU Management System</h1>
+    <h2>Edit Payment</h2>
+</header>
+
+<div class="container">
+
+    <form method="POST">
+
+        <label>Payment ID</label>
+        <input
+            type="text"
+            value="{{ payment[0] }}"
+            disabled
+        >
+
+        <label>Member</label>
+        <select name="member_id" required>
+
+            {% for member in members %}
+
+            <option
+                value="{{ member[0] }}"
+                {% if member[0] == payment[1] %}selected{% endif %}
+            >
+                {{ member[0] }} - {{ member[1] }} {{ member[2] }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <label>Amount</label>
+        <input
+            type="number"
+            name="amount"
+            step="0.01"
+            value="{{ payment[2] }}"
+            required
+        >
+
+        <label>Payment Date</label>
+        <input
+            type="date"
+            name="payment_date"
+            value="{{ payment[3] }}"
+            required
+        >
+
+        <label>Payment Type</label>
+        <input
+            type="text"
+            name="payment_type"
+            value="{{ payment[4] }}"
+            required
+        >
+
+        <label>Status</label>
+        <select name="status" required>
+
+            <option
+                value="Completed"
+                {% if payment[5] == "Completed" %}selected{% endif %}
+            >
+                Completed
+            </option>
+
+            <option
+                value="Pending"
+                {% if payment[5] == "Pending" %}selected{% endif %}
+            >
+                Pending
+            </option>
+
+            <option
+                value="Cancelled"
+                {% if payment[5] == "Cancelled" %}selected{% endif %}
+            >
+                Cancelled
+            </option>
+
+        </select>
+
+        <button type="submit">Save Changes</button>
+
+        <a href="/payments" class="back-button">
+            Back to Payments
+        </a>
+
+    </form>
+
+</div>
+
+</body>
+</html>
+```
+

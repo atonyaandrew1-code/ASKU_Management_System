@@ -84,7 +84,12 @@ def members():
         connection.close()
         return "Access denied"
 
-    cursor.execute("""
+    # Get search and filter values
+    search = request.args.get("search", "").strip()
+    status = request.args.get("status", "").strip()
+
+    # Build the query
+    query = """
         SELECT
             member_id,
             first_name,
@@ -95,15 +100,60 @@ def members():
             status,
             created_at
         FROM Members
+        WHERE 1=1
+    """
+
+    parameters = []
+
+    # Search by member ID, name, phone or email
+    if search:
+        query += """
+            AND (
+                member_id ILIKE %s
+                OR first_name ILIKE %s
+                OR last_name ILIKE %s
+                OR phone ILIKE %s
+                OR email ILIKE %s
+            )
+        """
+
+        search_value = f"%{search}%"
+
+        parameters.extend([
+            search_value,
+            search_value,
+            search_value,
+            search_value,
+            search_value
+        ])
+
+    # Filter by member status
+    if status:
+        query += """
+            AND status = %s
+        """
+
+        parameters.append(status)
+
+    # Sort results
+    query += """
         ORDER BY member_id
-    """)
+    """
+
+    cursor.execute(query, parameters)
 
     members = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
-    return render_template("members.html", members=members)
+    return render_template(
+        "members.html",
+        members=members,
+        search=search,
+        status=status
+    )
+
 
 @app.route("/edit_member/<path:member_id>", methods=["GET", "POST"])
 def edit_member(member_id):
@@ -145,7 +195,7 @@ def edit_member(member_id):
             # Validate Member ID format
             import re
 
-            if not re.fullmatch(r"ASKU/\d{3}", new_member_id):
+            if not re.fullmatch(r"ASKU/\d{3,}/\d{4}", new_member_id):
                 cursor.close()
                 connection.close()
                 return "Invalid Member ID. Use the format ASKU/001.", 400
@@ -268,7 +318,6 @@ def add_member():
     cursor.close()
     connection.close()
 
-
     if request.method == "POST":
 
         first_name = request.form["first_name"]
@@ -281,27 +330,54 @@ def add_member():
         connection = get_connection()
         cursor = connection.cursor()
 
-        # Find the highest existing ASKU member ID
+        # Find all existing ASKU Member IDs
         cursor.execute("""
             SELECT member_id
             FROM Members
-            WHERE member_id LIKE 'ASKU%'
-            ORDER BY member_id DESC
-            LIMIT 1
+            WHERE member_id LIKE 'ASKU/%'
         """)
 
-        result = cursor.fetchone()
+        existing_ids = cursor.fetchall()
 
-        if result:
-            last_id = result[0]
-            number = int(last_id.replace("ASKU/", ""))
-            new_member_id = f"ASKU/{number + 1:03d}"
-        else:
-            new_member_id = "ASKU/001"
+        # Find the highest member number
+        highest_number = 0
 
+        import re
+
+        for row in existing_ids:
+            existing_id = row[0]
+
+            match = re.fullmatch(
+                r"ASKU/(\d+)(?:/\d{4})?",
+                existing_id
+            )
+
+            if match:
+                number = int(match.group(1))
+
+                if number > highest_number:
+                    highest_number = number
+
+        # Generate the next Member ID
+        next_number = highest_number + 1
+
+        # Get the joining year from date_joined
+        joining_year = date_joined[:4]
+
+        new_member_id = f"ASKU/{next_number}/{joining_year}"
+
+        # Insert the new member
         cursor.execute("""
             INSERT INTO Members
-            (member_id, first_name, last_name, phone, email, date_joined, status)
+            (
+                member_id,
+                first_name,
+                last_name,
+                phone,
+                email,
+                date_joined,
+                status
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             new_member_id,
@@ -415,6 +491,192 @@ def payments():
         connection.close()
         return "Access denied"
 
+    # Get search and filter values
+    search = request.args.get("search", "").strip()
+    payment_date = request.args.get("payment_date", "").strip()
+    payment_type = request.args.get("payment_type", "").strip()
+    status = request.args.get("status", "").strip()
+
+    # Build the query
+    query = """
+        SELECT
+            p.payment_id,
+            p.member_id,
+            p.amount,
+            p.payment_date,
+            p.payment_type,
+            p.status
+        FROM Payments p
+        WHERE 1=1
+    """
+
+    parameters = []
+
+    # Search by Payment ID or Member ID
+    if search:
+        query += """
+            AND (
+                p.payment_id ILIKE %s
+                OR p.member_id ILIKE %s
+            )
+        """
+
+        search_value = f"%{search}%"
+
+        parameters.extend([
+            search_value,
+            search_value
+        ])
+
+    # Filter by payment date
+    if payment_date:
+        query += """
+            AND p.payment_date = %s
+        """
+
+        parameters.append(payment_date)
+
+    # Filter by payment type
+    if payment_type:
+        query += """
+            AND p.payment_type ILIKE %s
+        """
+
+        parameters.append(f"%{payment_type}%")
+
+    # Filter by status
+    if status:
+        query += """
+            AND p.status = %s
+        """
+
+        parameters.append(status)
+
+    query += """
+        ORDER BY p.payment_date DESC
+    """
+
+    cursor.execute(query, parameters)
+
+    payments = cursor.fetchall()
+
+    # Calculate total amount of the filtered results
+    total_query = """
+        SELECT COALESCE(SUM(p.amount), 0)
+        FROM Payments p
+        WHERE 1=1
+    """
+
+    total_parameters = []
+
+    if search:
+        total_query += """
+            AND (
+                p.payment_id ILIKE %s
+                OR p.member_id ILIKE %s
+            )
+        """
+
+        total_parameters.extend([
+            search_value,
+            search_value
+        ])
+
+    if payment_date:
+        total_query += """
+            AND p.payment_date = %s
+        """
+
+        total_parameters.append(payment_date)
+
+    if payment_type:
+        total_query += """
+            AND p.payment_type ILIKE %s
+        """
+
+        total_parameters.append(f"%{payment_type}%")
+
+    if status:
+        total_query += """
+            AND p.status = %s
+        """
+
+        total_parameters.append(status)
+
+    cursor.execute(total_query, total_parameters)
+
+    total_amount = cursor.fetchone()[0]
+
+    cursor.close()
+    connection.close()
+
+    return render_template(
+        "payments.html",
+        payments=payments,
+        total_amount=total_amount,
+        search=search,
+        payment_date=payment_date,
+        payment_type=payment_type,
+        status=status
+    )
+
+
+@app.route("/edit_payment/<path:payment_id>", methods=["GET", "POST"])
+def edit_payment(payment_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    if request.method == "POST":
+
+        member_id = request.form["member_id"]
+        amount = request.form["amount"]
+        payment_date = request.form["payment_date"]
+        payment_type = request.form["payment_type"]
+        status = request.form["status"]
+
+        cursor.execute("""
+            UPDATE Payments
+            SET member_id = %s,
+                amount = %s,
+                payment_date = %s,
+                payment_type = %s,
+                status = %s
+            WHERE payment_id = %s
+        """, (
+            member_id,
+            amount,
+            payment_date,
+            payment_type,
+            status,
+            payment_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/payments")
+
+    # Get the payment
     cursor.execute("""
         SELECT
             payment_id,
@@ -424,18 +686,71 @@ def payments():
             payment_type,
             status
         FROM Payments
-        ORDER BY payment_date DESC
+        WHERE payment_id = %s
+    """, (payment_id,))
+
+    payment = cursor.fetchone()
+
+    # Get members for dropdown
+    cursor.execute("""
+        SELECT
+            member_id,
+            first_name,
+            last_name
+        FROM Members
+        ORDER BY member_id
     """)
 
-    payments = cursor.fetchall()
+    members = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
+    if not payment:
+        return "Payment not found", 404
+
     return render_template(
-        "payments.html",
-        payments=payments
+        "edit_payment.html",
+        payment=payment,
+        members=members
     )
+
+@app.route("/delete_payment/<path:payment_id>", methods=["POST"])
+def delete_payment(payment_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Delete the payment
+    cursor.execute("""
+        DELETE FROM Payments
+        WHERE payment_id = %s
+    """, (payment_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/payments")
+
 
 @app.route("/events")
 def events():
@@ -537,6 +852,123 @@ def add_event():
 
     return render_template("add_event.html")
 
+@app.route("/edit_event/<path:event_id>", methods=["GET", "POST"])
+def edit_event(event_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_events permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_events'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied"
+
+    if request.method == "POST":
+
+        event_name = request.form["event_name"]
+        event_date = request.form["event_date"]
+        venue = request.form["venue"]
+        description = request.form["description"]
+        status = request.form["status"]
+
+        cursor.execute("""
+            UPDATE Events
+            SET event_name = %s,
+                event_date = %s,
+                venue = %s,
+                description = %s,
+                status = %s
+            WHERE event_id = %s
+        """, (
+            event_name,
+            event_date,
+            venue,
+            description,
+            status,
+            event_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/events")
+
+    # Load existing event
+    cursor.execute("""
+        SELECT
+            event_id,
+            event_name,
+            event_date,
+            venue,
+            description,
+            status
+        FROM Events
+        WHERE event_id = %s
+    """, (event_id,))
+
+    event = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if not event:
+        return "Event not found", 404
+
+    return render_template(
+        "edit_event.html",
+        event=event
+    )
+
+@app.route("/delete_event/<path:event_id>", methods=["POST"])
+def delete_event(event_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_events permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_events'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Delete the event
+    cursor.execute("""
+        DELETE FROM Events
+        WHERE event_id = %s
+    """, (event_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/events")
+
 @app.route("/attendance")
 def attendance():
 
@@ -561,7 +993,13 @@ def attendance():
         connection.close()
         return "Access denied"
 
-    cursor.execute("""
+    # Get search and filter values
+    search = request.args.get("search", "").strip()
+    attendance_date = request.args.get("attendance_date", "").strip()
+    status = request.args.get("status", "").strip()
+
+    # Build the query
+    query = """
         SELECT
             a.attendance_id,
             a.member_id,
@@ -576,8 +1014,52 @@ def attendance():
             ON a.member_id = m.member_id
         JOIN Activities ac
             ON a.activity_id = ac.activity_id
+        WHERE 1=1
+    """
+
+    parameters = []
+
+    # Search by member ID, member name or activity name
+    if search:
+        query += """
+            AND (
+                a.member_id ILIKE %s
+                OR m.first_name ILIKE %s
+                OR m.last_name ILIKE %s
+                OR ac.activity_name ILIKE %s
+            )
+        """
+
+        search_value = f"%{search}%"
+
+        parameters.extend([
+            search_value,
+            search_value,
+            search_value,
+            search_value
+        ])
+
+    # Filter by attendance date
+    if attendance_date:
+        query += """
+            AND a.attendance_date = %s
+        """
+
+        parameters.append(attendance_date)
+
+    # Filter by attendance status
+    if status:
+        query += """
+            AND a.status = %s
+        """
+
+        parameters.append(status)
+
+    query += """
         ORDER BY a.attendance_date DESC
-    """)
+    """
+
+    cursor.execute(query, parameters)
 
     attendance_records = cursor.fetchall()
 
@@ -586,8 +1068,152 @@ def attendance():
 
     return render_template(
         "attendance.html",
-        attendance_records=attendance_records
+        attendance_records=attendance_records,
+        search=search,
+        attendance_date=attendance_date,
+        status=status
     )
+
+@app.route("/edit_attendance/<int:attendance_id>", methods=["GET", "POST"])
+def edit_attendance(attendance_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_activities permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_activities'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    if request.method == "POST":
+
+        member_id = request.form["member_id"]
+        activity_id = request.form["activity_id"]
+        attendance_date = request.form["attendance_date"]
+        status = request.form["status"]
+
+        cursor.execute("""
+            UPDATE Attendance
+            SET member_id = %s,
+                activity_id = %s,
+                attendance_date = %s,
+                status = %s
+            WHERE attendance_id = %s
+        """, (
+            member_id,
+            activity_id,
+            attendance_date,
+            status,
+            attendance_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/attendance")
+
+    # Get the attendance record
+    cursor.execute("""
+        SELECT
+            attendance_id,
+            member_id,
+            activity_id,
+            attendance_date,
+            status
+        FROM Attendance
+        WHERE attendance_id = %s
+    """, (attendance_id,))
+
+    attendance = cursor.fetchone()
+
+    # Get members for dropdown
+    cursor.execute("""
+        SELECT
+            member_id,
+            first_name,
+            last_name
+        FROM Members
+        ORDER BY member_id
+    """)
+
+    members = cursor.fetchall()
+
+    # Get activities for dropdown
+    cursor.execute("""
+        SELECT
+            activity_id,
+            activity_name,
+            activity_date
+        FROM Activities
+        ORDER BY activity_date DESC
+    """)
+
+    activities = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    if not attendance:
+        return "Attendance record not found", 404
+
+    return render_template(
+        "edit_attendance.html",
+        attendance=attendance,
+        members=members,
+        activities=activities
+    )
+
+@app.route("/delete_attendance/<int:attendance_id>", methods=["POST"])
+def delete_attendance(attendance_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_activities permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_activities'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Delete the attendance record
+    cursor.execute("""
+        DELETE FROM Attendance
+        WHERE attendance_id = %s
+    """, (attendance_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/attendance")
+
+
 
 @app.route("/add_attendance", methods=["GET", "POST"])
 def add_attendance():
@@ -719,6 +1345,139 @@ def activities():
         "activities.html",
         activities=activities
     )
+
+@app.route("/edit_activity/<int:activity_id>", methods=["GET", "POST"])
+def edit_activity(activity_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_activities permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_activities'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    if request.method == "POST":
+
+        activity_name = request.form["activity_name"]
+        activity_date = request.form["activity_date"]
+        location = request.form["location"]
+        created_by = request.form["created_by"]
+
+        cursor.execute("""
+            UPDATE Activities
+            SET activity_name = %s,
+                activity_date = %s,
+                location = %s,
+                created_by = %s
+            WHERE activity_id = %s
+        """, (
+            activity_name,
+            activity_date,
+            location,
+            created_by,
+            activity_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/activities")
+
+    # Load existing activity
+    cursor.execute("""
+        SELECT
+            activity_id,
+            activity_name,
+            activity_date,
+            location,
+            created_by
+        FROM Activities
+        WHERE activity_id = %s
+    """, (activity_id,))
+
+    activity = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if not activity:
+        return "Activity not found", 404
+
+    return render_template(
+        "edit_activity.html",
+        activity=activity
+    )
+
+@app.route("/delete_activity/<int:activity_id>", methods=["POST"])
+def delete_activity(activity_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_activities permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_activities'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Check whether the activity has attendance records
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM Attendance
+        WHERE activity_id = %s
+    """, (activity_id,))
+
+    attendance_count = cursor.fetchone()[0]
+
+    if attendance_count > 0:
+        cursor.close()
+        connection.close()
+
+        return (
+            f"Cannot delete this activity because it has "
+            f"{attendance_count} attendance record(s) attached to it. "
+            f"Delete or reassign the attendance records first."
+        ), 400
+
+    # Delete the activity
+    cursor.execute("""
+        DELETE FROM Activities
+        WHERE activity_id = %s
+    """, (activity_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/activities")
+
 
 @app.route("/add_activity", methods=["GET", "POST"])
 def add_activity():
@@ -871,6 +1630,143 @@ def transactions():
         "transactions.html",
         transactions=transactions
     )
+
+@app.route("/edit_transaction/<int:transaction_id>", methods=["GET", "POST"])
+def edit_transaction(transaction_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    if request.method == "POST":
+
+        member_id = request.form["member_id"]
+        transaction_type = request.form["transaction_type"]
+        amount = request.form["amount"]
+        date = request.form["date"]
+        description = request.form["description"]
+        reference_no = request.form["reference_no"]
+        time = request.form["time"]
+
+        cursor.execute("""
+            UPDATE Transactions
+            SET member_id = %s,
+                transaction_type = %s,
+                amount = %s,
+                date = %s,
+                description = %s,
+                "reference_No" = %s,
+                "Time" = %s
+            WHERE transaction_id = %s
+        """, (
+            member_id,
+            transaction_type,
+            amount,
+            date,
+            description,
+            reference_no,
+            time,
+            transaction_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/transactions")
+
+    # Load existing transaction
+    cursor.execute("""
+        SELECT
+            transaction_id,
+            member_id,
+            transaction_type,
+            amount,
+            date,
+            description,
+            "reference_No",
+            "Time"
+        FROM Transactions
+        WHERE transaction_id = %s
+    """, (transaction_id,))
+
+    transaction = cursor.fetchone()
+
+    # Load members for the dropdown
+    cursor.execute("""
+        SELECT member_id, first_name, last_name
+        FROM Members
+        ORDER BY member_id
+    """)
+
+    members = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    if not transaction:
+        return "Transaction not found", 404
+
+    return render_template(
+        "edit_transaction.html",
+        transaction=transaction,
+        members=members
+    )
+
+@app.route("/delete_transaction/<int:transaction_id>", methods=["POST"])
+def delete_transaction(transaction_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Delete the transaction
+    cursor.execute("""
+        DELETE FROM Transactions
+        WHERE transaction_id = %s
+    """, (transaction_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/transactions")
+
+
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
 
@@ -1324,6 +2220,133 @@ def contributions():
         "contributions.html",
         contributions=contributions
     )
+
+@app.route("/edit_contribution/<int:contribution_id>", methods=["GET", "POST"])
+def edit_contribution(contribution_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    if request.method == "POST":
+
+        member_id = request.form["member_id"]
+        amount = request.form["amount"]
+        contribution_date = request.form["contribution_date"]
+        payment_method = request.form["payment_method"]
+        reference_number = request.form["reference_number"]
+
+        cursor.execute("""
+            UPDATE Contributions
+            SET member_id = %s,
+                amount = %s,
+                contribution_date = %s,
+                payment_method = %s,
+                reference_number = %s
+            WHERE contribution_id = %s
+        """, (
+            member_id,
+            amount,
+            contribution_date,
+            payment_method,
+            reference_number,
+            contribution_id
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect("/contributions")
+
+    # Load existing contribution
+    cursor.execute("""
+        SELECT
+            contribution_id,
+            member_id,
+            amount,
+            contribution_date,
+            payment_method,
+            reference_number
+        FROM Contributions
+        WHERE contribution_id = %s
+    """, (contribution_id,))
+
+    contribution = cursor.fetchone()
+
+    # Load members for the dropdown
+    cursor.execute("""
+        SELECT member_id, first_name, last_name
+        FROM Members
+        ORDER BY member_id
+    """)
+
+    members = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    if not contribution:
+        return "Contribution not found", 404
+
+    return render_template(
+        "edit_contribution.html",
+        contribution=contribution,
+        members=members
+    )
+
+@app.route("/delete_contribution/<int:contribution_id>", methods=["POST"])
+def delete_contribution(contribution_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check manage_finances permission
+    cursor.execute("""
+        SELECT 1
+        FROM role_permissions rp
+        JOIN permissions p
+            ON rp.permission_id = p.permission_id
+        WHERE rp.role_id = %s
+          AND p.permission_name = 'manage_finances'
+    """, (session["role_id"],))
+
+    permission = cursor.fetchone()
+
+    if not permission:
+        cursor.close()
+        connection.close()
+        return "Access denied", 403
+
+    # Delete the contribution
+    cursor.execute("""
+        DELETE FROM Contributions
+        WHERE contribution_id = %s
+    """, (contribution_id,))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return redirect("/contributions")
 
 @app.route("/add_contribution", methods=["GET", "POST"])
 def add_contribution():

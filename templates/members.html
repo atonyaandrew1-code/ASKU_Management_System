@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,6 +39,55 @@
             padding: 10px 15px;
             text-decoration: none;
             border-radius: 5px;
+            margin-left: 5px;
+        }
+
+        .search-box {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .search-box form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box input,
+        .search-box select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 300px;
+        }
+
+        .search-button {
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-button:hover {
+            background-color: #163a5a;
+        }
+
+        .clear-button {
+            background-color: #777;
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 5px;
         }
 
         table {
@@ -60,6 +110,24 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        .edit-button {
+            background-color: #1f4e78;
+            color: white;
+            padding: 7px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .edit-button:hover {
+            background-color: #163a5a;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
     </style>
 </head>
 
@@ -72,21 +140,58 @@
 
     <div class="container">
 
-    <div class="top-bar">
-        <h2>Registered Members</h2>
+        <div class="top-bar">
+            <h2>Registered Members</h2>
 
-        <div>
-            <a href="/add_member" class="back-button">
-            Add Member
-            </a>
+            <div>
+                <a href="/add_member" class="back-button">
+                    Add Member
+                </a>
 
-            <a href="/" class="back-button">
-            Back to Dashboard
-            </a>
+                <a href="/" class="back-button">
+                    Back to Dashboard
+                </a>
+            </div>
         </div>
-    </div>
 
+        <!-- Search and Filter -->
+        <div class="search-box">
+
+            <form method="GET" action="/members">
+
+                <input
+                    type="text"
+                    name="search"
+                    class="search-input"
+                    placeholder="Search ID, name, phone or email"
+                    value="{{ search }}"
+                >
+
+                <select name="status">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE" {% if status == "ACTIVE" %}selected{% endif %}>
+                        Active
+                    </option>
+                    <option value="INACTIVE" {% if status == "INACTIVE" %}selected{% endif %}>
+                        Inactive
+                    </option>
+                </select>
+
+                <button type="submit" class="search-button">
+                    Search
+                </button>
+
+                <a href="/members" class="clear-button">
+                    Clear
+                </a>
+
+            </form>
+
+        </div>
+
+        <!-- Members Table -->
         <table>
+
             <thead>
                 <tr>
                     <th>Member ID</th>
@@ -101,7 +206,9 @@
             </thead>
 
             <tbody>
+
                 {% for member in members %}
+
                 <tr>
                     <td>{{ member[0] }}</td>
                     <td>{{ member[1] }}</td>
@@ -110,11 +217,27 @@
                     <td>{{ member[4] }}</td>
                     <td>{{ member[5] }}</td>
                     <td>{{ member[6] }}</td>
+
                     <td>
-                       <a href="/edit_member/{{ member[0] }}">Edit</a>
+                        <a
+                            href="/edit_member/{{ member[0] }}"
+                            class="edit-button"
+                        >
+                            Edit
+                        </a>
                     </td>
                 </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="8" class="no-results">
+                        No members found.
+                    </td>
+                </tr>
+
                 {% endfor %}
+
             </tbody>
 
         </table>
@@ -123,3 +246,4 @@
 
 </body>
 </html>
+```

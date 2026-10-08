@@ -1,0 +1,149 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Activity - ASKU Management System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        .header {
+            background-color: #1f4e78;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 60%;
+            margin: 30px auto;
+        }
+
+        .form-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #163a5a;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #1f4e78;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>ASKU Management System</h1>
+    <p>Edit Activity</p>
+</div>
+
+<div class="container">
+
+    <div class="form-box">
+
+        <h2>Edit Activity</h2>
+
+        <form method="POST">
+
+            <label>Activity ID</label>
+
+            <input
+                type="text"
+                value="{{ activity[0] }}"
+                disabled
+            >
+
+            <label>Activity Name</label>
+
+            <input
+                type="text"
+                name="activity_name"
+                value="{{ activity[1] }}"
+                required
+            >
+
+            <label>Activity Date</label>
+
+            <input
+                type="date"
+                name="activity_date"
+                value="{{ activity[2] }}"
+                required
+            >
+
+            <label>Location</label>
+
+            <input
+                type="text"
+                name="location"
+                value="{{ activity[3] }}"
+                required
+            >
+
+            <label>Created By</label>
+
+            <input
+                type="text"
+                name="created_by"
+                value="{{ activity[4] }}"
+                required
+            >
+
+            <button type="submit">
+                Save Changes
+            </button>
+
+        </form>
+
+        <a href="/activities" class="back">
+            ← Back to Activities
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+```
