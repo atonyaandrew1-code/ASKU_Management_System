@@ -37,6 +37,59 @@
             margin-right: 10px;
         }
 
+        .filter-box {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .filter-box form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-box input,
+        .filter-box select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 280px;
+            max-width: 100%;
+        }
+
+        .search-button {
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-button:hover {
+            background-color: #163a5a;
+        }
+
+        .clear-button {
+            background-color: #777;
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -65,6 +118,7 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            margin-bottom: 5px;
         }
 
         .edit-button:hover {
@@ -83,6 +137,12 @@
         .delete-button:hover {
             background-color: #922b21;
         }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
     </style>
 </head>
 
@@ -100,77 +160,123 @@
         <a href="/" class="button">Back to Dashboard</a>
     </div>
 
-    <table>
+    <!-- Search and Filters -->
+    <div class="filter-box">
 
-        <thead>
-            <tr>
-                <th>Transaction ID</th>
-                <th>Member ID</th>
-                <th>Transaction Type</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Reference No</th>
-                <th>Time</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+        <form method="GET" action="/transactions">
 
-        <tbody>
+            <input
+                type="text"
+                name="search"
+                class="search-input"
+                placeholder="Search member ID, type or reference"
+                value="{{ search }}"
+            >
 
-            {% for transaction in transactions %}
+            <input
+                type="date"
+                name="transaction_date"
+                value="{{ transaction_date }}"
+            >
 
-            <tr>
-                <td>{{ transaction[0] }}</td>
-                <td>{{ transaction[1] }}</td>
-                <td>{{ transaction[2] }}</td>
-                <td>{{ transaction[3] }}</td>
-                <td>{{ transaction[4] }}</td>
-                <td>{{ transaction[5] }}</td>
-                <td>{{ transaction[6] }}</td>
-                <td>{{ transaction[7] }}</td>
+            <select name="transaction_type">
+                <option value="">All Transaction Types</option>
 
-                <td>
+                <option value="Income"
+                    {% if transaction_type == "Income" %}selected{% endif %}>
+                    Income
+                </option>
 
-                    <a
-                        href="/edit_transaction/{{ transaction[0] }}"
-                        class="edit-button"
-                    >
-                        Edit
-                    </a>
+                <option value="Expense"
+                    {% if transaction_type == "Expense" %}selected{% endif %}>
+                    Expense
+                </option>
+            </select>
 
-                    <form
-                        action="/delete_transaction/{{ transaction[0] }}"
-                        method="POST"
-                        style="display:inline;"
-                        onsubmit="return confirm('Are you sure you want to delete this transaction?');"
-                    >
-                        <button
-                            type="submit"
-                            class="delete-button"
+            <button type="submit" class="search-button">
+                Search
+            </button>
+
+            <a href="/transactions" class="clear-button">
+                Clear
+            </a>
+
+        </form>
+
+    </div>
+
+    <div class="table-container">
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Transaction ID</th>
+                    <th>Member ID</th>
+                    <th>Transaction Type</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Reference No</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for transaction in transactions %}
+
+                <tr>
+                    <td>{{ transaction[0] }}</td>
+                    <td>{{ transaction[1] }}</td>
+                    <td>{{ transaction[2] }}</td>
+                    <td>{{ transaction[3] }}</td>
+                    <td>{{ transaction[4] }}</td>
+                    <td>{{ transaction[5] }}</td>
+                    <td>{{ transaction[6] }}</td>
+                    <td>{{ transaction[7] }}</td>
+
+                    <td>
+                        <a
+                            href="/edit_transaction/{{ transaction[0] }}"
+                            class="edit-button"
                         >
-                            Delete
-                        </button>
-                    </form>
+                            Edit
+                        </a>
 
-                </td>
-            </tr>
+                        <form
+                            action="/delete_transaction/{{ transaction[0] }}"
+                            method="POST"
+                            style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this transaction?');"
+                        >
+                            <button
+                                type="submit"
+                                class="delete-button"
+                            >
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
 
-            {% else %}
+                {% else %}
 
-            <tr>
-                <td colspan="9">No transactions found.</td>
-            </tr>
+                <tr>
+                    <td colspan="9" class="no-results">
+                        No transactions found.
+                    </td>
+                </tr>
 
-            {% endfor %}
+                {% endfor %}
 
-        </tbody>
+            </tbody>
 
-    </table>
+        </table>
+    </div>
 
 </div>
 
 </body>
 </html>
 ```
-

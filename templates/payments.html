@@ -1,14 +1,22 @@
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Payments - ASKU Management System</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f4f6f8;
+            color: #333;
         }
 
         header {
@@ -18,37 +26,81 @@
             text-align: center;
         }
 
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
         .container {
-            width: 90%;
-            margin: 30px auto;
+            width: 95%;
+            max-width: 1400px;
+            margin: 25px auto;
         }
 
         .summary {
             background-color: white;
-            padding: 15px;
+            padding: 18px 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary h2 {
+            margin: 0;
+            font-size: 20px;
         }
 
         .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .button {
             display: inline-block;
-            padding: 10px 15px;
+            padding: 11px 16px;
             background-color: #1f4e78;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 10px;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .button:hover {
+            background-color: #163a5a;
+        }
+
+        .download-button {
+            background-color: #198754;
+        }
+
+        .download-button:hover {
+            background-color: #146c43;
+        }
+
+        .pdf-button {
+            background-color: #c0392b;
+        }
+
+        .pdf-button:hover {
+            background-color: #922b21;
         }
 
         .filter-box {
             background-color: white;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             border: 1px solid #ddd;
         }
 
@@ -65,19 +117,23 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
+            min-width: 0;
+            background-color: white;
         }
 
         .search-input {
             width: 250px;
+            max-width: 100%;
         }
 
         .search-button {
             background-color: #1f4e78;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 11px 18px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .search-button:hover {
@@ -85,15 +141,31 @@
         }
 
         .clear-button {
+            display: inline-block;
             background-color: #777;
             color: white;
-            padding: 10px 18px;
+            padding: 11px 18px;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .clear-button:hover {
+            background-color: #555;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
 
         table {
             width: 100%;
+            min-width: 850px;
             border-collapse: collapse;
             background-color: white;
         }
@@ -108,6 +180,7 @@
         th {
             background-color: #1f4e78;
             color: white;
+            white-space: nowrap;
         }
 
         tr:nth-child(even) {
@@ -121,7 +194,8 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 5px;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .edit-button:hover {
@@ -135,6 +209,8 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .delete-button:hover {
@@ -145,6 +221,64 @@
             text-align: center;
             padding: 20px;
             color: #777;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 16px 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            header h2 {
+                font-size: 19px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 15px auto;
+            }
+
+            .summary {
+                padding: 15px;
+            }
+
+            .summary h2 {
+                font-size: 17px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .button {
+                width: 100%;
+            }
+
+            .filter-box {
+                padding: 14px;
+            }
+
+            .filter-box form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-box input,
+            .filter-box select,
+            .search-input,
+            .search-button,
+            .clear-button {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 10px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -158,19 +292,48 @@
 
 <div class="container">
 
+    <!-- Payment Summary -->
     <div class="summary">
         <h2>Total Amount Paid: KSh {{ total_amount }}</h2>
     </div>
 
+    <!-- Main Actions and Download Buttons -->
     <div class="actions">
-        <a href="/add_payment" class="button">Add Payment</a>
-        <a href="/" class="button">Back to Dashboard</a>
+
+        <a href="{{ url_for('add_payment') }}" class="button">
+            Add Payment
+        </a>
+
+        <a
+            href="{{ url_for('download_payments',
+                search=search,
+                payment_date=payment_date,
+                payment_type=payment_type,
+                status=status) }}"
+            class="button download-button">
+            Download Payments CSV
+        </a>
+
+        <a
+            href="{{ url_for('download_payments_pdf',
+                search=search,
+                payment_date=payment_date,
+                payment_type=payment_type,
+                status=status) }}"
+            class="button pdf-button">
+            Download Payments PDF
+        </a>
+
+        <a href="/" class="button">
+            Back to Dashboard
+        </a>
+
     </div>
 
     <!-- Search and Filters -->
     <div class="filter-box">
 
-        <form method="GET" action="/payments">
+        <form method="GET" action="{{ url_for('payments') }}">
 
             <input
                 type="text"
@@ -196,17 +359,20 @@
             <select name="status">
                 <option value="">All Statuses</option>
 
-                <option value="Completed"
+                <option
+                    value="Completed"
                     {% if status == "Completed" %}selected{% endif %}>
                     Completed
                 </option>
 
-                <option value="Pending"
+                <option
+                    value="Pending"
                     {% if status == "Pending" %}selected{% endif %}>
                     Pending
                 </option>
 
-                <option value="Cancelled"
+                <option
+                    value="Cancelled"
                     {% if status == "Cancelled" %}selected{% endif %}>
                     Cancelled
                 </option>
@@ -216,7 +382,7 @@
                 Search
             </button>
 
-            <a href="/payments" class="clear-button">
+            <a href="{{ url_for('payments') }}" class="clear-button">
                 Clear
             </a>
 
@@ -225,69 +391,72 @@
     </div>
 
     <!-- Payments Table -->
-    <table>
+    <div class="table-wrapper">
 
-        <thead>
-            <tr>
-                <th>Payment ID</th>
-                <th>Member ID</th>
-                <th>Amount</th>
-                <th>Payment Date</th>
-                <th>Payment Type</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+        <table>
+            <thead>
+                <tr>
+                    <th>Payment ID</th>
+                    <th>Member ID</th>
+                    <th>Amount</th>
+                    <th>Payment Date</th>
+                    <th>Payment Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 
-        <tbody>
+            <tbody>
 
-            {% for payment in payments %}
+                {% for payment in payments %}
 
-            <tr>
-                <td>{{ payment[0] }}</td>
-                <td>{{ payment[1] }}</td>
-                <td>KSh {{ payment[2] }}</td>
-                <td>{{ payment[3] }}</td>
-                <td>{{ payment[4] }}</td>
-                <td>{{ payment[5] }}</td>
+                <tr>
+                    <td>{{ payment[0] }}</td>
+                    <td>{{ payment[1] }}</td>
+                    <td>KSh {{ payment[2] }}</td>
+                    <td>{{ payment[3] }}</td>
+                    <td>{{ payment[4] }}</td>
+                    <td>{{ payment[5] }}</td>
 
-                <td>
-                    <a
-                        href="/edit_payment/{{ payment[0] }}"
-                        class="edit-button"
-                    >
-                        Edit
-                    </a>
+                    <td>
+                        <a
+                            href="{{ url_for('edit_payment',
+                                payment_id=payment[0]) }}"
+                            class="edit-button">
+                            Edit
+                        </a>
 
-                    <form
-                        action="/delete_payment/{{ payment[0] }}"
-                        method="POST"
-                        style="display:inline;"
-                        onsubmit="return confirm('Are you sure you want to delete this payment?');"
-                    >
-                        <button
-                            type="submit"
-                            class="delete-button"
-                        >
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
+                        <form
+                            action="{{ url_for('delete_payment',
+                                payment_id=payment[0]) }}"
+                            method="POST"
+                            style="display: inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this payment?');">
 
-            {% else %}
+                            <button
+                                type="submit"
+                                class="delete-button">
+                                Delete
+                            </button>
 
-            <tr>
-                <td colspan="7" class="no-results">
-                    No payments found.
-                </td>
-            </tr>
+                        </form>
+                    </td>
+                </tr>
 
-            {% endfor %}
+                {% else %}
 
-        </tbody>
+                <tr>
+                    <td colspan="7" class="no-results">
+                        No payments found.
+                    </td>
+                </tr>
 
-    </table>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
 
 </div>
 

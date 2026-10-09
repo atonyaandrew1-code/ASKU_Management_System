@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,81 +8,283 @@
     <title>ASKU Management System</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
+            color: #333;
         }
 
+        /* Header */
         .header {
             background-color: #1f4e78;
             color: white;
-            padding: 20px;
+            padding: 25px 15px;
             text-align: center;
         }
 
+        .asku-logo {
+            width: 160px;
+            height: 100px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 12px;
+            background-color: white;
+            border-radius: 50%;
+            padding: 5px;
+        }
+
+        .header h1 {
+            margin: 5px 0 10px;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* Main container */
         .container {
-            width: 90%;
+            width: 92%;
+            max-width: 1200px;
             margin: 30px auto;
         }
 
+        /* Welcome section */
         .welcome {
-            background: white;
+            background-color: white;
             padding: 25px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 25px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
+        .welcome h2 {
+            color: #1f4e78;
+            margin-top: 0;
+        }
+
+        .welcome p {
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* Dashboard cards */
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(min(100%, 250px), 1fr)
+            );
             gap: 20px;
+            align-items: stretch;
         }
 
         .card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
+            min-width: 0;
+            background-color: white;
+            padding: 25px 20px;
+            border-radius: 10px;
             text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .card h2 {
-            margin-bottom: 10px;
+            color: #1f4e78;
+            margin: 0 0 10px;
+            overflow-wrap: anywhere;
         }
 
+        .card p {
+            line-height: 1.6;
+            margin: 0 0 10px;
+            overflow-wrap: anywhere;
+        }
+
+        /* Dashboard buttons */
         .card a {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 18px;
+            display: block;
+            width: 100%;
+            max-width: 220px;
+            margin: 8px auto 0;
+            padding: 12px 10px;
+
             background-color: #1f4e78;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            text-align: center;
+
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+
+            white-space: normal;
+            overflow-wrap: anywhere;
+            flex-shrink: 0;
+
+            transition: background-color 0.2s ease;
         }
 
         .card a:hover {
             background-color: #163a5a;
+        }
+
+        .card a:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 3px;
+        }
+
+        /* Tablets and mobile devices */
+        @media (max-width: 768px) {
+            .header {
+                padding: 22px 12px;
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+            .header p {
+                font-size: 13px;
+            }
+
+            .asku-logo {
+                width: 90px;
+                height: 90px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 20px auto;
+            }
+
+            .welcome {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            .card {
+                min-width: 0;
+                padding: 20px 12px;
+            }
+
+            .card h2 {
+                font-size: 19px;
+            }
+
+            .card a {
+                width: 100%;
+                max-width: 100%;
+                margin-top: 10px;
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+        }
+
+        /* Small mobile phones */
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 12px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .asku-logo {
+                width: 90px;
+                height: 90px;
+            }
+
+            .container {
+                width: 92%;
+                margin: 18px auto;
+            }
+
+            .welcome {
+                padding: 18px;
+            }
+
+            .welcome h2 {
+                font-size: 21px;
+            }
+
+            .cards {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 15px;
+            }
+
+            .card {
+                width: 100%;
+                padding: 22px 16px;
+            }
+
+            .card h2 {
+                font-size: 20px;
+            }
+
+            .card p {
+                font-size: 14px;
+            }
+
+            .card a {
+                width: 100%;
+                max-width: 280px;
+                margin-top: 10px;
+                padding: 12px 10px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
+    <!-- ASKU Header -->
+    <header class="header">
+
+        <img
+            src="{{ url_for('static', filename='images/asku_logo.jpeg') }}"
+            alt="ASKU Logo"
+            class="asku-logo"
+        >
+
         <h1>ASKU Management System</h1>
+
         <p>THE ACTUARIAL SOCIETY OF KENYATTA UNIVERSITY</p>
-    </div>
 
-    <div class="container">
+    </header>
 
-        <div class="welcome">
+    <!-- Dashboard Content -->
+    <main class="container">
+
+        <section class="welcome">
             <h2>Dashboard</h2>
             <p>Welcome to the ASKU Management System!</p>
+        </section>
 
+        <section class="cards">
 
-</div>
-
+            <!-- Members -->
             <div class="card">
                 <h2>Members</h2>
                 <p>Manage ASKU members.</p>
@@ -90,10 +293,11 @@
                 <a href="/add_member">Add Member</a>
 
                 {% if session.get("role_name", "").lower() == "admin" %}
-                   <a href="/users">Manage Users</a>
+                    <a href="/users">Manage Users</a>
                 {% endif %}
             </div>
 
+            <!-- Payments -->
             <div class="card">
                 <h2>Payments</h2>
                 <p>Manage member payments.</p>
@@ -101,34 +305,24 @@
                 <a href="/payments">View Payments</a>
                 <a href="/add_payment">Add Payment</a>
             </div>
+
+            <!-- Transactions -->
             <div class="card">
                 <h2>Transactions</h2>
                 <p>Record and track ASKU financial transactions.</p>
 
                 <a href="/transactions">View Transactions</a>
             </div>
-            <div class="card">
-                <h2>Contributions</h2>
-                <p>Manage member contributions.</p>
 
-                <a href="/contributions">View Contributions</a>
-                <a href="/add_contribution">Add Contribution</a>
-            </div>
-
-            <div class="card">
-                <h2>Events</h2>
-                <p>Manage ASKU events and activities.</p>
-
-                <a href="/events">View Events</a>
-                <a href="/add_event">Add Event</a>
-            </div>
-            
+            <!-- Activities -->
             <div class="card">
                 <h2>Activities</h2>
                 <p>Manage ASKU activities and member participation.</p>
 
                 <a href="/activities">View Activities</a>
             </div>
+
+            <!-- Attendance -->
             <div class="card">
                 <h2>Attendance</h2>
                 <p>Track member attendance at ASKU activities.</p>
@@ -136,15 +330,18 @@
                 <a href="/attendance">View Attendance</a>
             </div>
 
+            <!-- Reports -->
             <div class="card">
                 <h2>Reports</h2>
                 <p>View system reports.</p>
+
                 <a href="/reports">View Reports</a>
             </div>
 
-        </div>
+        </section>
 
-    </div>
+    </main>
 
 </body>
 </html>
+```

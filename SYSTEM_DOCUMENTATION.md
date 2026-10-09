@@ -2,7 +2,7 @@
 
 ## 1. System Overview
 
-The ASKU Management System is a web-based management system developed to help ASKU manage and track its members, activities, attendance, financial records, events, and users.
+The ASKU Management System is a web-based management system developed to help ASKU manage and track its members, activities, attendance, financial records and users.
 
 The system provides controlled access based on user roles and permissions. It is designed to make organizational records easier to manage, retrieve, and maintain.
 
@@ -12,9 +12,9 @@ The system is designed to:
 
 - Manage ASKU member records.
 - Generate and maintain member identification numbers.
-- Manage activities and events.
+- Manage activities
 - Record member attendance.
-- Manage payments, contributions, and transactions.
+- Manage payments and transactions.
 - Manage system users.
 - Control access according to user roles and permissions.
 - Provide a centralized database for ASKU records.
@@ -71,24 +71,12 @@ It stores:
 
 ### 4.4 Events
 
-The Events module manages ASKU events and related information.
-
 ### 4.5 Payments
 
 The Payments module records member payment information and allows authorized users to manage payment records.
 
-### 4.6 Contributions
+### 4.6 
 
-The Contributions module records member contributions.
-
-It stores information such as:
-
-- Member.
-- Amount.
-- Contribution date.
-- Payment method.
-- Reference number.
-- Creation date.
 
 ### 4.7 Transactions
 
@@ -129,9 +117,7 @@ The Administrator can:
 - Manage members.
 - Manage activities.
 - Manage attendance.
-- Manage events.
 - Manage payments.
-- Manage contributions.
 - Manage transactions.
 - Access management functions permitted by the system.
 
@@ -142,7 +128,6 @@ The Treasurer has access to financial management functions according to the perm
 These include relevant functions for:
 
 - Payments.
-- Contributions.
 - Transactions.
 - Financial records.
 
@@ -185,7 +170,6 @@ The system currently contains the following main tables:
 members
 activities
 attendance
-contributions
 transactions
 users
 roles
@@ -227,17 +211,7 @@ Member ID
 Activity ID
 Attendance date
 Attendance status
-6.4 Contributions Table
-
-Stores contribution records, including:
-
-Contribution ID
-Member ID
-Amount
-Contribution date
-Payment method
-Reference number
-Created date
+6.4
 6.5 Transactions Table
 
 Stores financial transaction records, including:
@@ -331,7 +305,6 @@ When a Member ID is changed, PostgreSQL automatically updates the corresponding 
 The related tables include:
 
 - Attendance
-- Contributions
 - Payments
 - Transactions
 - Users
@@ -383,18 +356,7 @@ The system records payments made by members.
 
 Payment records are associated with individual members and can be used to maintain financial records.
 
-### 7.9 Contributions Management
-
-The system records member contributions.
-
-Contribution records contain information such as:
-
-- Member
-- Amount
-- Contribution date
-- Payment method
-- Reference number
-- Date the record was created
+### 7.9 
 
 ### 7.10 Transactions Management
 
@@ -412,9 +374,6 @@ Transaction information includes:
 
 ### 7.11 Events Management
 
-The system provides functionality for managing organizational events.
-
-Events can be recorded and displayed through the management dashboard.
 
 ### 7.12 Dashboard
 
@@ -424,7 +383,6 @@ It displays summary information including:
 
 - Total members
 - Total payments
-- Total events
 - Total activities
 - Total attendance records
 - Total transactions
@@ -438,7 +396,6 @@ The system uses PostgreSQL foreign-key relationships to maintain consistency bet
 Foreign-key relationships connect members with:
 
 - Attendance
-- Contributions
 - Payments
 - Transactions
 - Users
@@ -512,7 +469,7 @@ Attendance records are linked to both the member and the activity.
 
 ### 8.6 Financial Management Workflow
 
-Financial information is managed through the Payments, Contributions, and Transactions modules.
+Financial information is managed through the Payments and Transactions modules.
 
 Authorized users can record and view financial records according to their assigned permissions.
 
@@ -653,14 +610,12 @@ The attendance module operated correctly.
 The following modules were tested:
 
 - Payments
-- Contributions
 - Transactions
 
 The system successfully recorded and displayed financial information.
 
 ### 9.9 Events Testing
 
-The Events module was tested to verify that events can be managed and displayed correctly.
 
 ### 9.10 Dashboard Testing
 
@@ -670,7 +625,6 @@ The following dashboard statistics were tested:
 
 - Total members
 - Total payments
-- Total events
 - Total activities
 - Total attendance records
 - Total transactions
@@ -734,7 +688,6 @@ The database contains the tables required to manage:
 - Activities
 - Attendance
 - Payments
-- Contributions
 - Transactions
 - Events
 
@@ -806,7 +759,6 @@ Future versions of the system may include:
 
 - Advanced search and filtering
 - Financial reports
-- Member contribution statements
 - Automated receipt generation
 - PDF report generation
 - Email notifications
@@ -890,7 +842,7 @@ Future modules may include:
 
 ## 12. Conclusion
 
-The ASKU Management System provides a centralized platform for managing members, users, activities, attendance, events, payments, contributions, and transactions.
+The ASKU Management System provides a centralized platform for managing members, users, activities, attendance, payments and transactions.
 
 The system uses PostgreSQL for structured data storage and Flask for the web application.
 

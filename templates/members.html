@@ -8,45 +8,113 @@
     <title>Members - ASKU Management System</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
+            color: #333;
         }
 
+        /* Header */
         .header {
             background-color: #1f4e78;
             color: white;
-            padding: 20px;
+            padding: 20px 15px;
             text-align: center;
         }
 
-        .container {
-            width: 95%;
-            margin: 30px auto;
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
         }
 
+        .header p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* Main container */
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 25px auto;
+        }
+
+        /* Page title and buttons */
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
-        .back-button {
-            background-color: #555;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-left: 5px;
+        .top-bar h2 {
+            margin: 0;
+            color: #1f4e78;
         }
 
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 42px;
+            padding: 10px 15px;
+            background-color: #555;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        .back-button:hover {
+            background-color: #333;
+        }
+
+        .add-button {
+            background-color: #1f4e78;
+        }
+
+        .add-button:hover {
+            background-color: #163a5a;
+        }
+
+        .download-button {
+            background-color: #198754;
+        }
+
+        .download-button:hover {
+            background-color: #146c43;
+        }
+
+        .pdf-button {
+            background-color: #c0392b;
+        }
+
+        .pdf-button:hover {
+            background-color: #922b21;
+        }
+
+        /* Search and filter */
         .search-box {
             background-color: white;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             border: 1px solid #ddd;
         }
 
@@ -59,23 +127,42 @@
 
         .search-box input,
         .search-box select {
-            padding: 10px;
+            min-width: 0;
+            max-width: 100%;
+            padding: 11px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
         }
 
         .search-input {
-            width: 300px;
+            flex: 1 1 260px;
+        }
+
+        .search-box select {
+            flex: 0 1 160px;
+            background-color: white;
+        }
+
+        .search-button,
+        .clear-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 42px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.4;
+            cursor: pointer;
         }
 
         .search-button {
             background-color: #1f4e78;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
         .search-button:hover {
@@ -84,27 +171,46 @@
 
         .clear-button {
             background-color: #777;
-            color: white;
-            padding: 10px 18px;
-            text-decoration: none;
+        }
+
+        .clear-button:hover {
+            background-color: #555;
+        }
+
+        /* Members table */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            background-color: white;
             border-radius: 5px;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
+            min-width: 850px;
             border-collapse: collapse;
             background-color: white;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             border: 1px solid #ddd;
             text-align: left;
         }
 
+        /* Keep member IDs on one line */
+        table th:first-child,
+        table td:first-child {
+            white-space: nowrap;
+            min-width: 110px;
+        }
+
         th {
             background-color: #1f4e78;
             color: white;
+            white-space: nowrap;
         }
 
         tr:nth-child(even) {
@@ -112,11 +218,17 @@
         }
 
         .edit-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 55px;
+            min-height: 36px;
+            padding: 7px 12px;
             background-color: #1f4e78;
             color: white;
-            padding: 7px 12px;
             text-decoration: none;
             border-radius: 5px;
+            text-align: center;
         }
 
         .edit-button:hover {
@@ -128,35 +240,169 @@
             padding: 20px;
             color: #777;
         }
+
+        /* Keyboard accessibility */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 2px;
+        }
+
+        /* Tablets and smaller screens */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 20px auto;
+            }
+
+            .top-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .top-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                width: 100%;
+            }
+
+            .back-button {
+                width: 100%;
+                min-width: 0;
+                margin: 0;
+                padding: 11px 8px;
+            }
+
+            .search-box {
+                padding: 15px;
+            }
+
+            .search-box form {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .search-box input,
+            .search-box select,
+            .search-button,
+            .clear-button {
+                width: 100%;
+                max-width: none;
+                min-height: 44px;
+                margin: 0;
+            }
+
+            .search-input,
+            .search-box select {
+                flex: auto;
+            }
+
+            th,
+            td {
+                padding: 10px;
+            }
+        }
+
+        /* Small mobile phones */
+        @media (max-width: 480px) {
+            .header {
+                padding: 18px 12px;
+            }
+
+            .header h1 {
+                font-size: 21px;
+            }
+
+            .header p {
+                font-size: 14px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 16px auto;
+            }
+
+            .top-bar h2 {
+                font-size: 21px;
+            }
+
+            .top-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .back-button {
+                font-size: 14px;
+            }
+
+            .search-box {
+                padding: 12px;
+            }
+
+            .search-box input,
+            .search-box select,
+            .search-button,
+            .clear-button {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
+    <!-- ASKU Header -->
+    <header class="header">
         <h1>ASKU Management System</h1>
         <p>Members</p>
-    </div>
+    </header>
 
-    <div class="container">
+    <main class="container">
 
+        <!-- Page Title and Navigation -->
         <div class="top-bar">
             <h2>Registered Members</h2>
 
-            <div>
-                <a href="/add_member" class="back-button">
+            <div class="top-actions">
+
+                <a href="/add_member"
+                   class="back-button add-button">
                     Add Member
                 </a>
 
-                <a href="/" class="back-button">
+                <a
+                    href="{{ url_for('download_members',
+                        search=search,
+                        status=status) }}"
+                    class="back-button download-button">
+                    Download Members CSV
+                </a>
+
+                <a
+                    href="{{ url_for('download_members_pdf',
+                        search=search,
+                        status=status) }}"
+                    class="back-button pdf-button">
+                    Download Members PDF
+                </a>
+
+                <a href="/"
+                   class="back-button">
                     Back to Dashboard
                 </a>
+
             </div>
         </div>
 
         <!-- Search and Filter -->
-        <div class="search-box">
-
+        <section class="search-box">
             <form method="GET" action="/members">
 
                 <input
@@ -165,16 +411,26 @@
                     class="search-input"
                     placeholder="Search ID, name, phone or email"
                     value="{{ search }}"
+                    aria-label="Search members"
                 >
 
-                <select name="status">
+                <select name="status"
+                        aria-label="Filter by member status">
+
                     <option value="">All Statuses</option>
-                    <option value="ACTIVE" {% if status == "ACTIVE" %}selected{% endif %}>
+
+                    <option
+                        value="ACTIVE"
+                        {% if status == "ACTIVE" %}selected{% endif %}>
                         Active
                     </option>
-                    <option value="INACTIVE" {% if status == "INACTIVE" %}selected{% endif %}>
+
+                    <option
+                        value="INACTIVE"
+                        {% if status == "INACTIVE" %}selected{% endif %}>
                         Inactive
                     </option>
+
                 </select>
 
                 <button type="submit" class="search-button">
@@ -186,63 +442,56 @@
                 </a>
 
             </form>
-
-        </div>
+        </section>
 
         <!-- Members Table -->
-        <table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Date Joined</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-            <thead>
-                <tr>
-                    <th>Member ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Date Joined</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td>{{ member[0] }}</td>
+                        <td>{{ member[1] }}</td>
+                        <td>{{ member[2] }}</td>
+                        <td>{{ member[3] }}</td>
+                        <td>{{ member[4] }}</td>
+                        <td>{{ member[5] }}</td>
+                        <td>{{ member[6] }}</td>
 
-            <tbody>
+                        <td>
+                            <a
+                                href="/edit_member/{{ member[0] }}"
+                                class="edit-button">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
 
-                {% for member in members %}
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="no-results">
+                            No members found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-                <tr>
-                    <td>{{ member[0] }}</td>
-                    <td>{{ member[1] }}</td>
-                    <td>{{ member[2] }}</td>
-                    <td>{{ member[3] }}</td>
-                    <td>{{ member[4] }}</td>
-                    <td>{{ member[5] }}</td>
-                    <td>{{ member[6] }}</td>
-
-                    <td>
-                        <a
-                            href="/edit_member/{{ member[0] }}"
-                            class="edit-button"
-                        >
-                            Edit
-                        </a>
-                    </td>
-                </tr>
-
-                {% else %}
-
-                <tr>
-                    <td colspan="8" class="no-results">
-                        No members found.
-                    </td>
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
+    </main>
 
 </body>
 </html>

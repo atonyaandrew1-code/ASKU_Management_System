@@ -1,6 +1,14 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, url_for, session, Response
 from database import get_connection
 import bcrypt
+import csv
+import io
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+
 
 app = Flask(__name__)
 app.secret_key = "asku-management-secret-key"
@@ -30,10 +38,6 @@ def home():
     cursor.execute("SELECT COUNT(*) FROM Payments")
     total_payments = cursor.fetchone()[0]
 
-    # Total events
-    cursor.execute("SELECT COUNT(*) FROM Events")
-    total_events = cursor.fetchone()[0]
-
     # Total activities
     cursor.execute("SELECT COUNT(*) FROM Activities")
     total_activities = cursor.fetchone()[0]
@@ -53,7 +57,6 @@ def home():
         "index.html",
         total_members=total_members,
         total_payments=total_payments,
-        total_events=total_events,
         total_activities=total_activities,
         total_attendance=total_attendance,
         total_transactions=total_transactions
@@ -154,6 +157,259 @@ def members():
         status=status
     )
 
+@app.route("/download_members")
+def download_members():
+
+    # Require login
+    if "user_id" not in session or "role_id" not in session:
+        return redirect("/login")
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Check permission to view or manage members
+        cursor.execute("""
+            SELECT 1
+            FROM role_permissions rp
+            JOIN permissions p
+                ON rp.permission_id = p.permission_id
+            WHERE rp.role_id = %s
+              AND p.permission_name IN ('manage_members', 'view_members')
+        """, (session["role_id"],))
+
+        if not cursor.fetchone():
+            return "Access denied", 403
+
+        # Use the same search and status filters as the members page
+        search = request.args.get("search", "").strip()
+        status = request.args.get("status", "").strip()
+
+        query = """
+            SELECT
+                member_id,
+                first_name,
+                last_name,
+                phone,
+                email,
+                date_joined,
+                status
+            FROM members
+            WHERE 1=1
+        """
+
+        parameters = []
+
+        if search:
+            query += """
+                AND (
+                    member_id ILIKE %s
+                    OR first_name ILIKE %s
+                    OR last_name ILIKE %s
+                    OR phone ILIKE %s
+                    OR email ILIKE %s
+                )
+            """
+
+            search_value = f"%{search}%"
+            parameters.extend([search_value] * 5)
+
+        if status:
+            query += " AND status = %s"
+            parameters.append(status)
+
+        query += " ORDER BY member_id"
+
+        cursor.execute(query, parameters)
+        members = cursor.fetchall()
+
+        # Create the CSV file in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        writer.writerow([
+            "Member ID",
+            "First Name",
+            "Last Name",
+            "Phone",
+            "Email",
+            "Date Joined",
+            "Status"
+        ])
+
+        writer.writerows(members)
+
+        # Return a downloadable CSV file
+        csv_content = "\ufeff" + output.getvalue()
+
+        return Response(
+            csv_content,
+            mimetype="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition":
+                    "attachment; filename=ASKU_Members.csv"
+            }
+        )
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@app.route("/download_members_pdf")
+def download_members_pdf():
+
+    # Require login
+    if "user_id" not in session or "role_id" not in session:
+        return redirect("/login")
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Check permission to view or manage members
+        cursor.execute("""
+            SELECT 1
+            FROM role_permissions rp
+            JOIN permissions p
+                ON rp.permission_id = p.permission_id
+            WHERE rp.role_id = %s
+              AND p.permission_name IN (
+                  'manage_members',
+                  'view_members'
+              )
+        """, (session["role_id"],))
+
+        if not cursor.fetchone():
+            return "Access denied", 403
+
+        # Get the same filters used on the Members page
+        search = request.args.get("search", "").strip()
+        status = request.args.get("status", "").strip()
+
+        query = """
+            SELECT
+                member_id,
+                first_name,
+                last_name,
+                phone,
+                email,
+                date_joined,
+                status
+            FROM Members
+            WHERE 1=1
+        """
+
+        parameters = []
+
+        if search:
+            query += """
+                AND (
+                    member_id ILIKE %s
+                    OR first_name ILIKE %s
+                    OR last_name ILIKE %s
+                    OR phone ILIKE %s
+                    OR email ILIKE %s
+                    OR (first_name || ' ' || last_name) ILIKE %s
+                )
+            """
+
+            search_value = f"%{search}%"
+            parameters.extend([search_value] * 6)
+
+        if status:
+            query += " AND status = %s"
+            parameters.append(status)
+
+        query += " ORDER BY member_id"
+
+        cursor.execute(query, parameters)
+        members = cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    # Create PDF in memory
+    buffer = io.BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        rightMargin=25,
+        leftMargin=25,
+        topMargin=30,
+        bottomMargin=30
+    )
+
+    styles = getSampleStyleSheet()
+
+    elements = [
+        Paragraph("ASKU Management System", styles["Title"]),
+        Spacer(1, 8),
+        Paragraph("Members Report", styles["Heading2"]),
+        Spacer(1, 15)
+    ]
+
+    table_data = [[
+        "Member ID",
+        "First Name",
+        "Last Name",
+        "Phone",
+        "Email",
+        "Date Joined",
+        "Status"
+    ]]
+
+    for member in members:
+        table_data.append([
+            str(value) if value is not None else ""
+            for value in member
+        ])
+
+    if not members:
+        table_data.append([
+            "No members found", "", "", "", "", "", ""
+        ])
+
+    table = Table(
+        table_data,
+        repeatRows=1,
+        colWidths=[85, 85, 85, 100, 165, 100, 75]
+    )
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0),
+         colors.HexColor("#1f4e78")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+            colors.white,
+            colors.HexColor("#f2f2f2")
+        ]),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+
+    elements.append(table)
+    document.build(elements)
+
+    buffer.seek(0)
+
+    return Response(
+        buffer.getvalue(),
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition":
+                "attachment; filename=ASKU_Members.pdf"
+        }
+    )
+
+
 
 @app.route("/edit_member/<path:member_id>", methods=["GET", "POST"])
 def edit_member(member_id):
@@ -214,10 +470,10 @@ def edit_member(member_id):
                     connection.close()
                     return "That Member ID already exists.", 400
 
-            # Update member
-            # ON UPDATE CASCADE automatically updates:
-            # attendance, contributions, payments,
-            # transactions, and users.
+           # Update member
+           # ON UPDATE CASCADE automatically updates
+           # related records in tables that reference Members,
+           # such as attendance, payments, transactions, and users.
             cursor.execute("""
                 UPDATE Members
                 SET member_id = %s,
@@ -620,6 +876,257 @@ def payments():
         status=status
     )
 
+@app.route("/download_payments")
+def download_payments():
+
+    # Require login
+    if "user_id" not in session or "role_id" not in session:
+        return redirect("/login")
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Check permission to view or manage payments
+        cursor.execute("""
+            SELECT 1
+            FROM role_permissions rp
+            JOIN permissions p
+                ON rp.permission_id = p.permission_id
+            WHERE rp.role_id = %s
+              AND p.permission_name IN (
+                  'manage_finances',
+                  'view_payments'
+              )
+        """, (session["role_id"],))
+
+        if not cursor.fetchone():
+            return "Access denied", 403
+
+        # Get the same filters used by the Payments page
+        search = request.args.get("search", "").strip()
+        payment_date = request.args.get("payment_date", "").strip()
+        payment_type = request.args.get("payment_type", "").strip()
+        status = request.args.get("status", "").strip()
+
+        # Build the filtered query
+        query = """
+            SELECT
+                p.payment_id,
+                p.member_id,
+                p.amount,
+                p.payment_date,
+                p.payment_type,
+                p.status
+            FROM Payments p
+            WHERE 1=1
+        """
+
+        parameters = []
+
+        if search:
+            query += """
+                AND (
+                    CAST(p.payment_id AS TEXT) ILIKE %s
+                    OR p.member_id ILIKE %s
+                )
+            """
+            search_value = f"%{search}%"
+            parameters.extend([search_value, search_value])
+
+        if payment_date:
+            query += " AND p.payment_date = %s"
+            parameters.append(payment_date)
+
+        if payment_type:
+            query += " AND p.payment_type ILIKE %s"
+            parameters.append(f"%{payment_type}%")
+
+        if status:
+            query += " AND p.status = %s"
+            parameters.append(status)
+
+        query += " ORDER BY p.payment_date DESC"
+
+        cursor.execute(query, parameters)
+        payments = cursor.fetchall()
+
+        # Create CSV file in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        writer.writerow([
+            "Payment ID",
+            "Member ID",
+            "Amount",
+            "Payment Date",
+            "Payment Type",
+            "Status"
+        ])
+
+        writer.writerows(payments)
+
+        csv_content = "\ufeff" + output.getvalue()
+
+        return Response(
+            csv_content,
+            mimetype="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition":
+                    "attachment; filename=ASKU_Payments.csv"
+            }
+        )
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route("/download_payments_pdf")
+def download_payments_pdf():
+
+    if "user_id" not in session or "role_id" not in session:
+        return redirect("/login")
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Check permissions
+        cursor.execute("""
+            SELECT 1
+            FROM role_permissions rp
+            JOIN permissions p
+                ON rp.permission_id = p.permission_id
+            WHERE rp.role_id = %s
+              AND p.permission_name IN (
+                  'manage_finances',
+                  'view_payments'
+              )
+        """, (session["role_id"],))
+
+        if not cursor.fetchone():
+            return "Access denied", 403
+
+        # Read the same filters as the Payments page
+        search = request.args.get("search", "").strip()
+        payment_date = request.args.get("payment_date", "").strip()
+        payment_type = request.args.get("payment_type", "").strip()
+        status = request.args.get("status", "").strip()
+
+        query = """
+            SELECT
+                p.payment_id,
+                p.member_id,
+                p.amount,
+                p.payment_date,
+                p.payment_type,
+                p.status
+            FROM Payments p
+            WHERE 1=1
+        """
+
+        parameters = []
+
+        if search:
+            query += """
+                AND (
+                    CAST(p.payment_id AS TEXT) ILIKE %s
+                    OR p.member_id ILIKE %s
+                )
+            """
+            value = f"%{search}%"
+            parameters.extend([value, value])
+
+        if payment_date:
+            query += " AND p.payment_date = %s"
+            parameters.append(payment_date)
+
+        if payment_type:
+            query += " AND p.payment_type ILIKE %s"
+            parameters.append(f"%{payment_type}%")
+
+        if status:
+            query += " AND p.status = %s"
+            parameters.append(status)
+
+        query += " ORDER BY p.payment_date DESC"
+
+        cursor.execute(query, parameters)
+        payments = cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    # Create the PDF in memory
+    buffer = io.BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+
+    styles = getSampleStyleSheet()
+
+    elements = [
+        Paragraph("ASKU Management System", styles["Title"]),
+        Spacer(1, 8),
+        Paragraph("Payments Report", styles["Heading2"]),
+        Spacer(1, 15)
+    ]
+
+    table_data = [[
+        "Payment ID",
+        "Member ID",
+        "Amount (KSh)",
+        "Payment Date",
+        "Payment Type",
+        "Status"
+    ]]
+
+    for payment in payments:
+        table_data.append([
+            str(value) if value is not None else ""
+            for value in payment
+        ])
+
+    table = Table(
+        table_data,
+        repeatRows=1,
+        colWidths=[90, 90, 90, 100, 120, 90]
+    )
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e78")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+         [colors.white, colors.HexColor("#f2f2f2")]),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+
+    elements.append(table)
+
+    document.build(elements)
+
+    buffer.seek(0)
+
+    return Response(
+        buffer.getvalue(),
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition":
+                "attachment; filename=ASKU_Payments.pdf"
+        }
+    )
 
 @app.route("/edit_payment/<path:payment_id>", methods=["GET", "POST"])
 def edit_payment(payment_id):
@@ -752,222 +1259,6 @@ def delete_payment(payment_id):
     return redirect("/payments")
 
 
-@app.route("/events")
-def events():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check permission:
-    # manage_events OR view_events
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name IN ('manage_events', 'view_events')
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied"
-
-    cursor.execute("""
-        SELECT
-            event_id,
-            event_name,
-            event_date,
-            venue,
-            description,
-            status
-        FROM Events
-        ORDER BY event_date DESC
-    """)
-
-    events = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    return render_template("events.html", events=events)
-
-@app.route("/add_event", methods=["GET", "POST"])
-def add_event():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_events'
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied"
-
-    if request.method == "POST":
-
-        event_id = request.form["event_id"]
-        event_name = request.form["event_name"]
-        event_date = request.form["event_date"]
-        venue = request.form["venue"]
-        description = request.form["description"]
-        status = request.form["status"]
-
-        cursor.execute("""
-            INSERT INTO Events
-            (event_id, event_name, event_date, venue, description, status)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (
-            event_id,
-            event_name,
-            event_date,
-            venue,
-            description,
-            status
-        ))
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        return redirect("/events")
-
-    cursor.close()
-    connection.close()
-
-    return render_template("add_event.html")
-
-@app.route("/edit_event/<path:event_id>", methods=["GET", "POST"])
-def edit_event(event_id):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check manage_events permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_events'
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied"
-
-    if request.method == "POST":
-
-        event_name = request.form["event_name"]
-        event_date = request.form["event_date"]
-        venue = request.form["venue"]
-        description = request.form["description"]
-        status = request.form["status"]
-
-        cursor.execute("""
-            UPDATE Events
-            SET event_name = %s,
-                event_date = %s,
-                venue = %s,
-                description = %s,
-                status = %s
-            WHERE event_id = %s
-        """, (
-            event_name,
-            event_date,
-            venue,
-            description,
-            status,
-            event_id
-        ))
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        return redirect("/events")
-
-    # Load existing event
-    cursor.execute("""
-        SELECT
-            event_id,
-            event_name,
-            event_date,
-            venue,
-            description,
-            status
-        FROM Events
-        WHERE event_id = %s
-    """, (event_id,))
-
-    event = cursor.fetchone()
-
-    cursor.close()
-    connection.close()
-
-    if not event:
-        return "Event not found", 404
-
-    return render_template(
-        "edit_event.html",
-        event=event
-    )
-
-@app.route("/delete_event/<path:event_id>", methods=["POST"])
-def delete_event(event_id):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check manage_events permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_events'
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied", 403
-
-    # Delete the event
-    cursor.execute("""
-        DELETE FROM Events
-        WHERE event_id = %s
-    """, (event_id,))
-
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    return redirect("/events")
 
 @app.route("/attendance")
 def attendance():
@@ -1559,10 +1850,6 @@ def reports():
     cursor.execute("SELECT COUNT(*) FROM Payments")
     total_payments = cursor.fetchone()[0]
 
-    # Total events
-    cursor.execute("SELECT COUNT(*) FROM Events")
-    total_events = cursor.fetchone()[0]
-
     # Total activities
     cursor.execute("SELECT COUNT(*) FROM Activities")
     total_activities = cursor.fetchone()[0]
@@ -1578,7 +1865,6 @@ def reports():
         "reports.html",
         total_members=total_members,
         total_payments=total_payments,
-        total_events=total_events,
         total_activities=total_activities,
         total_attendance=total_attendance
     )
@@ -1605,9 +1891,15 @@ def transactions():
     if not permission:
         cursor.close()
         connection.close()
-        return "Access denied"
+        return "Access denied", 403
 
-    cursor.execute("""
+    # Get search and filter values
+    search = request.args.get("search", "").strip()
+    transaction_date = request.args.get("transaction_date", "").strip()
+    transaction_type = request.args.get("transaction_type", "").strip()
+
+    # Build the query
+    query = """
         SELECT
             transaction_id,
             member_id,
@@ -1618,8 +1910,50 @@ def transactions():
             "reference_No",
             "Time"
         FROM Transactions
+        WHERE 1=1
+    """
+
+    parameters = []
+
+    # Search by Member ID, Transaction Type or Reference Number
+    if search:
+        query += """
+            AND (
+                member_id ILIKE %s
+                OR transaction_type ILIKE %s
+                OR "reference_No" ILIKE %s
+            )
+        """
+
+        search_value = f"%{search}%"
+
+        parameters.extend([
+            search_value,
+            search_value,
+            search_value
+        ])
+
+    # Filter by transaction date
+    if transaction_date:
+        query += """
+            AND date = %s
+        """
+
+        parameters.append(transaction_date)
+
+    # Filter by transaction type
+    if transaction_type:
+        query += """
+            AND transaction_type = %s
+        """
+
+        parameters.append(transaction_type)
+
+    query += """
         ORDER BY date DESC
-    """)
+    """
+
+    cursor.execute(query, parameters)
 
     transactions = cursor.fetchall()
 
@@ -1628,8 +1962,12 @@ def transactions():
 
     return render_template(
         "transactions.html",
-        transactions=transactions
+        transactions=transactions,
+        search=search,
+        transaction_date=transaction_date,
+        transaction_type=transaction_type
     )
+
 
 @app.route("/edit_transaction/<int:transaction_id>", methods=["GET", "POST"])
 def edit_transaction(transaction_id):
@@ -2171,270 +2509,7 @@ def delete_user(user_id):
 
     return redirect("/users")
 
-@app.route("/contributions")
-def contributions():
 
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check permission:
-    # manage_finances OR view_contributions
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name IN ('manage_finances', 'view_contributions')
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied"
-
-    cursor.execute("""
-        SELECT
-            c.contribution_id,
-            c.member_id,
-            m.first_name,
-            m.last_name,
-            c.amount,
-            c.contribution_date,
-            c.payment_method,
-            c.reference_number
-        FROM Contributions c
-        JOIN Members m
-            ON c.member_id = m.member_id
-        ORDER BY c.contribution_date DESC
-    """)
-
-    contributions = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    return render_template(
-        "contributions.html",
-        contributions=contributions
-    )
-
-@app.route("/edit_contribution/<int:contribution_id>", methods=["GET", "POST"])
-def edit_contribution(contribution_id):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check manage_finances permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_finances'
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied", 403
-
-    if request.method == "POST":
-
-        member_id = request.form["member_id"]
-        amount = request.form["amount"]
-        contribution_date = request.form["contribution_date"]
-        payment_method = request.form["payment_method"]
-        reference_number = request.form["reference_number"]
-
-        cursor.execute("""
-            UPDATE Contributions
-            SET member_id = %s,
-                amount = %s,
-                contribution_date = %s,
-                payment_method = %s,
-                reference_number = %s
-            WHERE contribution_id = %s
-        """, (
-            member_id,
-            amount,
-            contribution_date,
-            payment_method,
-            reference_number,
-            contribution_id
-        ))
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        return redirect("/contributions")
-
-    # Load existing contribution
-    cursor.execute("""
-        SELECT
-            contribution_id,
-            member_id,
-            amount,
-            contribution_date,
-            payment_method,
-            reference_number
-        FROM Contributions
-        WHERE contribution_id = %s
-    """, (contribution_id,))
-
-    contribution = cursor.fetchone()
-
-    # Load members for the dropdown
-    cursor.execute("""
-        SELECT member_id, first_name, last_name
-        FROM Members
-        ORDER BY member_id
-    """)
-
-    members = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    if not contribution:
-        return "Contribution not found", 404
-
-    return render_template(
-        "edit_contribution.html",
-        contribution=contribution,
-        members=members
-    )
-
-@app.route("/delete_contribution/<int:contribution_id>", methods=["POST"])
-def delete_contribution(contribution_id):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check manage_finances permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_finances'
-    """, (session["role_id"],))
-
-    permission = cursor.fetchone()
-
-    if not permission:
-        cursor.close()
-        connection.close()
-        return "Access denied", 403
-
-    # Delete the contribution
-    cursor.execute("""
-        DELETE FROM Contributions
-        WHERE contribution_id = %s
-    """, (contribution_id,))
-
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    return redirect("/contributions")
-
-@app.route("/add_contribution", methods=["GET", "POST"])
-def add_contribution():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Check manage_finances permission
-    cursor.execute("""
-        SELECT 1
-        FROM role_permissions rp
-        JOIN permissions p
-            ON rp.permission_id = p.permission_id
-        WHERE rp.role_id = %s
-          AND p.permission_name = 'manage_finances'
-    """, (session["role_id"],))
-
-    has_permission = cursor.fetchone()
-
-    if not has_permission:
-        cursor.close()
-        connection.close()
-        return "Access denied", 403
-
-    if request.method == "POST":
-
-        member_id = request.form["member_id"]
-        amount = request.form["amount"]
-        contribution_date = request.form["contribution_date"]
-        payment_method = request.form["payment_method"]
-        reference_number = request.form["reference_number"]
-
-        # Generate contribution ID
-        cursor.execute("""
-            SELECT MAX(contribution_id)
-            FROM Contributions
-        """)
-
-        result = cursor.fetchone()
-
-        if result[0] is not None:
-            new_contribution_id = result[0] + 1
-        else:
-            new_contribution_id = 1
-
-        cursor.execute("""
-            INSERT INTO Contributions
-            (
-                contribution_id,
-                member_id,
-                amount,
-                contribution_date,
-                payment_method,
-                reference_number
-            )
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (
-            new_contribution_id,
-            member_id,
-            amount,
-            contribution_date,
-            payment_method,
-            reference_number
-        ))
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        return redirect("/contributions")
-
-    # Get members for the dropdown
-    cursor.execute("""
-        SELECT member_id, first_name, last_name
-        FROM Members
-        ORDER BY member_id
-    """)
-
-    members = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    return render_template(
-        "add_contribution.html",
-        members=members
-    )
 
 if __name__ == "__main__":
     app.run(debug=True)
