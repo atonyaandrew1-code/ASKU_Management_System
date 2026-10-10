@@ -1,25 +1,94 @@
-from flask import Flask, render_template, request, redirect, url_for, session, Response
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    Response,
+    flash
+)
+
 from database import get_connection
+from dotenv import load_dotenv
+from flask_mail import Mail, Message
+
+import os
+import secrets
+import hashlib
 import bcrypt
 import csv
 import io
+
+from datetime import datetime, timedelta, timezone
+
 from reportlab.lib.pagesizes import landscape, letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer
+)
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
 
+# Load environment variables from .env
+load_dotenv()
+
+
+# Initialize Flask application
 app = Flask(__name__)
-app.secret_key = "asku-management-secret-key"
+
+app.secret_key = os.getenv(
+    "FLASK_SECRET_KEY",
+    "asku-management-secret-key"
+)
+
 app.config["SESSION_PERMANENT"] = False
+
+
+# Gmail email configuration
+app.config["MAIL_SERVER"] = os.getenv(
+    "MAIL_SERVER",
+    "smtp.gmail.com"
+)
+
+app.config["MAIL_PORT"] = int(
+    os.getenv("MAIL_PORT", "587")
+)
+
+app.config["MAIL_USE_TLS"] = (
+    os.getenv("MAIL_USE_TLS", "True").lower() == "true"
+)
+
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv(
+    "MAIL_DEFAULT_SENDER"
+)
+
+mail = Mail(app)
+
 
 @app.before_request
 def require_login():
+    public_endpoints = [
+        "login",
+        "forgot_password",
+        "reset_password",
+        "static"
+    ]
 
-    if request.endpoint not in ["login", "static"]:
-        if "user_id" not in session:
-            return redirect("/login")
+    if request.endpoint in public_endpoints:
+        return None
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
 @app.route("/")
 def home():
@@ -2243,6 +2312,195 @@ def login():
         return "Invalid username or password"
 
     return render_template("login.html")
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+
+        if email:
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute("""
+                    SELECT u.user_id, m.email
+                    FROM users u
+                    JOIN members m
+                        ON u.member_id = m.member_id
+                    WHERE LOWER(TRIM(m.email)) = LOWER(%s)
+                      AND u.is_active = TRUE
+                """, (email,))
+
+                user = cursor.fetchone()
+
+                if user:
+                    # Generate a secure, random reset token
+                    token = secrets.token_urlsafe(32)
+
+                    # Store only the SHA-256 hash of the token
+                    token_hash = hashlib.sha256(
+                        token.encode("utf-8")
+                    ).hexdigest()
+
+                    # Token expires after 30 minutes
+                    expires_at = datetime.now(timezone.utc) + timedelta(
+                         minutes=30
+                    )
+
+                    cursor.execute("""
+                        INSERT INTO password_resets
+                            (user_id, token_hash, expires_at)
+                        VALUES (%s, %s, %s)
+                    """, (
+                        user[0],
+                        token_hash,
+                        expires_at
+                    ))
+
+                    connection.commit()
+
+                    # Build the password-reset link
+                    reset_url = url_for(
+                        "reset_password",
+                        token=token,
+                        _external=True
+                    )
+
+                    message = Message(
+                        subject="ASKU Password Reset",
+                        recipients=[user[1]],
+                        body=(
+                            "Hello,\n\n"
+                            "We received a request to reset your "
+                            "ASKU Management System password.\n\n"
+                            f"Use this link within 30 minutes:\n"
+                            f"{reset_url}\n\n"
+                            "If you did not request this reset, "
+                            "you can ignore this email."
+                        )
+                    )
+
+                    try:
+                        mail.send(message)
+                    except Exception:
+                        app.logger.exception(
+                            "Failed to send password-reset email"
+                        )
+
+                        # Remove the unused token if sending failed
+                        cursor.execute("""
+                            DELETE FROM password_resets
+                            WHERE token_hash = %s
+                        """, (token_hash,))
+                        connection.commit()
+
+            finally:
+                cursor.close()
+                connection.close()
+
+        # Same response whether the email exists or not
+        flash(
+            "If an active account uses that email address, "
+            "a password-reset email will be sent.",
+            "info"
+        )
+
+        return redirect(url_for("login"))
+
+    return render_template("forgot_password.html")
+
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+
+    # Hash the token from the link before looking it up
+    token_hash = hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT reset_id, user_id
+            FROM password_resets
+            WHERE token_hash = %s
+              AND used = FALSE
+              AND expires_at > CURRENT_TIMESTAMP
+        """, (token_hash,))
+
+        reset_record = cursor.fetchone()
+
+        if not reset_record:
+            flash(
+                "This reset link is invalid, expired, or already used.",
+                "error"
+            )
+            return redirect(url_for("forgot_password"))
+
+        if request.method == "POST":
+            password = request.form.get("password", "")
+            confirm_password = request.form.get(
+                "confirm_password", ""
+            )
+
+            if len(password) < 8:
+                flash(
+                    "Your password must be at least 8 characters.",
+                    "error"
+                )
+                return render_template("reset_password.html")
+
+            if password != confirm_password:
+                flash(
+                    "The passwords do not match.",
+                    "error"
+                )
+                return render_template("reset_password.html")
+
+            password_hash = bcrypt.hashpw(
+                password.encode("utf-8"),
+                bcrypt.gensalt()
+            ).decode("utf-8")
+
+            cursor.execute("""
+                UPDATE users
+                SET password_hash = %s
+                WHERE user_id = %s
+                  AND is_active = TRUE
+            """, (password_hash, reset_record[1]))
+
+            if cursor.rowcount != 1:
+                connection.rollback()
+                flash(
+                    "Unable to reset this account's password.",
+                    "error"
+                )
+                return redirect(url_for("forgot_password"))
+
+            cursor.execute("""
+                UPDATE password_resets
+                SET used = TRUE
+                WHERE reset_id = %s
+            """, (reset_record[0],))
+
+            connection.commit()
+
+            flash(
+                "Your password has been reset. You can now log in.",
+                "success"
+            )
+            return redirect(url_for("login"))
+
+        return render_template("reset_password.html")
+
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route("/logout")
 def logout():

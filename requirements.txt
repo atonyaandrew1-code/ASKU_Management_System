@@ -4,3 +4,4 @@ python-dotenv
 bcrypt
 gunicorn
 reportlab
+Flask-Mail

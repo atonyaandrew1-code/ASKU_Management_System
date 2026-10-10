@@ -1,29 +1,159 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - ASKU Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1f4e78;
+            font-size: 25px;
+            text-align: center;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+            border: none;
+            border-radius: 6px;
+            background: #1f4e78;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #163a5a;
+        }
+
+        .forgot-link {
+            display: block;
+            margin-top: 18px;
+            text-align: center;
+            color: #1f4e78;
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .flash-message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 6px;
+            background: #eef3f8;
+            color: #1f4e78;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .flash-message.success {
+            background: #e8f5e9;
+            color: #216e39;
+        }
+
+        .flash-message.error {
+            background: #fdecea;
+            color: #b42318;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>ASKU Management System</h1>
-    <h2>Login</h2>
+    <div class="login-container">
 
-    <form method="POST">
+        <h1>ASKU Management System</h1>
+        <h2>Login</h2>
 
-        <label>Username:</label><br>
-        <input type="text" name="username" required>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-        <br><br>
+        <form method="POST">
 
-        <label>Password:</label><br>
-        <input type="password" name="password" required>
+            <label for="username">Username</label>
+            <input
+                type="text"
+                id="username"
+                name="username"
+                autocomplete="username"
+                required
+            >
 
-        <br><br>
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                required
+            >
 
-        <button type="submit">Login</button>
+            <button type="submit">Login</button>
 
-    </form>
+        </form>
+
+        <a href="{{ url_for('forgot_password') }}" class="forgot-link">
+            Forgot Password?
+        </a>
+
+    </div>
 
 </body>
 </html>
+```
