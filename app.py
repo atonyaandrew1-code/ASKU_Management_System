@@ -11,6 +11,33 @@ from flask import (
 )
 
 from database import get_connection
+
+def ensure_password_resets_table():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS password_resets (
+                reset_id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL
+                    REFERENCES users(user_id) ON DELETE CASCADE,
+                token_hash VARCHAR(64) NOT NULL UNIQUE,
+                expires_at TIMESTAMPTZ NOT NULL,
+                used BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        cursor.close()
+        connection.close()
+
+ensure_password_resets_table()
+
 from dotenv import load_dotenv
 from flask_mail import Mail, Message
 
