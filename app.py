@@ -2451,6 +2451,24 @@ def forgot_password():
                                 "Resend accepted password-reset email"
                             )
 
+                    except urllib.error.HTTPError as error:
+                        error_body = error.read().decode(
+                            "utf-8",
+                            errors="replace"
+                        )
+
+                        app.logger.error(
+                            "Resend HTTP error %s: %s",
+                            error.code,
+                            error_body
+                        )
+
+                        cursor.execute("""
+                            DELETE FROM password_resets
+                            WHERE token_hash = %s
+                        """, (token_hash,))
+                        connection.commit()
+
                     except Exception:
                         app.logger.exception(
                             "Failed to send password-reset email"
