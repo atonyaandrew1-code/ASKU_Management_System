@@ -2430,16 +2430,15 @@ def forgot_password():
                         }
 
                         email_request = urllib.request.Request(
-                            "https://api.resend.com/emails",
-                            data=json.dumps(
-                                email_payload
-                            ).encode("utf-8"),
-                            headers={
-                                "Authorization": (
-                                    f"Bearer {resend_api_key}"
-                                ),
-                                "Content-Type": "application/json"
-                            },
+                             "https://api.resend.com/emails",
+                              data=json.dumps(
+                                  email_payload
+                              ).encode("utf-8"),
+                              headers={
+                                 "Authorization": f"Bearer {resend_api_key}",
+                                 "Content-Type": "application/json",
+                                 "User-Agent": "ASKU-Management-System/1.0"
+                        },
                             method="POST"
                         )
 
