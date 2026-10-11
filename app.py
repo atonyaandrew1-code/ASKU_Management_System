@@ -61,6 +61,8 @@ from reportlab.platypus import (
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
+import json
+import urllib.request
 
 
 # Load environment variables from .env
@@ -2396,34 +2398,69 @@ def forgot_password():
                         _external=True
                     )
 
-                    message = Message(
-                        subject="ASKU Password Reset",
-                        recipients=[user[1]],
-                        body=(
-                            "Hello,\n\n"
-                            "We received a request to reset your "
-                            "ASKU Management System password.\n\n"
-                            f"Use this link within 30 minutes:\n"
-                            f"{reset_url}\n\n"
-                            "If you did not request this reset, "
-                            "you can ignore this email."
-                        )
+
+                    # Send the password-reset email through Resend
+                    resend_api_key = os.getenv("RESEND_API_KEY")
+                    resend_from = os.getenv(
+                        "RESEND_FROM",
+                        "onboarding@resend.dev"
                     )
 
                     try:
-                        mail.send(message)
+                        if not resend_api_key:
+                            raise ValueError(
+                                "RESEND_API_KEY is not configured"
+                            )
+
+                        email_payload = {
+                            "from": (
+                                f"ASKU Management System <{resend_from}>"
+                            ),
+                            "to": [user[1]],
+                            "subject": "ASKU Password Reset",
+                            "text": (
+                                "Hello,\n\n"
+                                "We received a request to reset your "
+                                "ASKU Management System password.\n\n"
+                                "Use this link within 30 minutes:\n"
+                                f"{reset_url}\n\n"
+                                "If you did not request this reset, "
+                                "you can ignore this email."
+                            )
+                        }
+
+                        email_request = urllib.request.Request(
+                            "https://api.resend.com/emails",
+                            data=json.dumps(
+                                email_payload
+                            ).encode("utf-8"),
+                            headers={
+                                "Authorization": (
+                                    f"Bearer {resend_api_key}"
+                                ),
+                                "Content-Type": "application/json"
+                            },
+                            method="POST"
+                        )
+
+                        with urllib.request.urlopen(
+                            email_request,
+                            timeout=15
+                        ) as response:
+                            app.logger.info(
+                                "Resend accepted password-reset email"
+                            )
+
                     except Exception:
                         app.logger.exception(
                             "Failed to send password-reset email"
                         )
 
-                        # Remove the unused token if sending failed
                         cursor.execute("""
                             DELETE FROM password_resets
                             WHERE token_hash = %s
                         """, (token_hash,))
                         connection.commit()
-
             finally:
                 cursor.close()
                 connection.close()
