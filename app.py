@@ -2620,9 +2620,9 @@ def users():
         SELECT
             u.user_id,
             u.username,
-            m.first_name,
-            m.last_name,
+            u.member_id,
             r.role_name,
+            m.first_name,
             u.is_active,
             u.date
         FROM users u
