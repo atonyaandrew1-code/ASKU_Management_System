@@ -1,14 +1,22 @@
-```html
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Attendance - ASKU Management System</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f4f6f8;
+            color: #333;
         }
 
         header {
@@ -18,30 +26,49 @@
             text-align: center;
         }
 
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
         .container {
-            width: 90%;
-            margin: 30px auto;
+            width: 95%;
+            max-width: 1400px;
+            margin: 25px auto;
         }
 
         .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .button {
             display: inline-block;
-            padding: 10px 15px;
+            padding: 11px 16px;
             background-color: #1f4e78;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background-color: #163a5a;
         }
 
         .filter-box {
             background-color: white;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             border: 1px solid #ddd;
         }
 
@@ -58,19 +85,23 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
+            min-width: 0;
+            background-color: white;
         }
 
         .search-input {
             width: 300px;
+            max-width: 100%;
         }
 
         .search-button {
             background-color: #1f4e78;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 11px 18px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .search-button:hover {
@@ -78,20 +109,38 @@
         }
 
         .clear-button {
+            display: inline-block;
             background-color: #777;
             color: white;
-            padding: 10px 18px;
+            padding: 11px 18px;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .clear-button:hover {
+            background-color: #555;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
+            min-width: 900px;
             border-collapse: collapse;
             background-color: white;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             border: 1px solid #ddd;
             text-align: left;
@@ -100,6 +149,7 @@
         th {
             background-color: #1f4e78;
             color: white;
+            white-space: nowrap;
         }
 
         tr:nth-child(even) {
@@ -113,7 +163,8 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 5px;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .edit-button:hover {
@@ -127,7 +178,8 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-left: 5px;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .delete-button:hover {
@@ -138,6 +190,64 @@
             text-align: center;
             padding: 20px;
             color: #777;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 16px 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            header h2 {
+                font-size: 19px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 15px auto;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .button {
+                width: 100%;
+            }
+
+            .filter-box {
+                padding: 14px;
+            }
+
+            .filter-box form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-box input,
+            .filter-box select,
+            .search-input,
+            .search-button,
+            .clear-button {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 10px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -151,15 +261,25 @@
 
 <div class="container">
 
+    <!-- Page Actions -->
     <div class="actions">
-        <a href="/add_attendance" class="button">Add Attendance</a>
-        <a href="/" class="button">Back to Dashboard</a>
+
+        {% if can_manage_attendance %}
+        <a href="{{ url_for('add_attendance') }}" class="button">
+            Add Attendance
+        </a>
+        {% endif %}
+
+        <a href="/" class="button">
+            Back to Dashboard
+        </a>
+
     </div>
 
     <!-- Search and Filters -->
     <div class="filter-box">
 
-        <form method="GET" action="/attendance">
+        <form method="GET" action="{{ url_for('attendance') }}">
 
             <input
                 type="text"
@@ -167,29 +287,34 @@
                 class="search-input"
                 placeholder="Search member ID, name or activity"
                 value="{{ search }}"
+                aria-label="Search attendance records"
             >
 
             <input
                 type="date"
                 name="attendance_date"
                 value="{{ attendance_date }}"
+                aria-label="Filter by attendance date"
             >
 
-            <select name="status">
+            <select name="status" aria-label="Filter by attendance status">
 
                 <option value="">All Statuses</option>
 
-                <option value="Present"
+                <option
+                    value="Present"
                     {% if status == "Present" %}selected{% endif %}>
                     Present
                 </option>
 
-                <option value="Absent"
+                <option
+                    value="Absent"
                     {% if status == "Absent" %}selected{% endif %}>
                     Absent
                 </option>
 
-                <option value="Late"
+                <option
+                    value="Late"
                     {% if status == "Late" %}selected{% endif %}>
                     Late
                 </option>
@@ -200,7 +325,7 @@
                 Search
             </button>
 
-            <a href="/attendance" class="clear-button">
+            <a href="{{ url_for('attendance') }}" class="clear-button">
                 Clear
             </a>
 
@@ -208,74 +333,92 @@
 
     </div>
 
-    <table>
+    <!-- Attendance Table -->
+    <div class="table-container">
 
-        <thead>
-            <tr>
-                <th>Attendance ID</th>
-                <th>Member ID</th>
-                <th>Member Name</th>
-                <th>Activity ID</th>
-                <th>Activity Name</th>
-                <th>Attendance Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+        <table>
 
-        <tbody>
+            <thead>
+                <tr>
+                    <th>Attendance ID</th>
+                    <th>Member ID</th>
+                    <th>Member Name</th>
+                    <th>Activity ID</th>
+                    <th>Activity Name</th>
+                    <th>Attendance Date</th>
+                    <th>Status</th>
 
-            {% for record in attendance_records %}
+                    {% if can_manage_attendance %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
 
-            <tr>
-                <td>{{ record[0] }}</td>
-                <td>{{ record[1] }}</td>
-                <td>{{ record[2] }} {{ record[3] }}</td>
-                <td>{{ record[4] }}</td>
-                <td>{{ record[5] }}</td>
-                <td>{{ record[6] }}</td>
-                <td>{{ record[7] }}</td>
+            <tbody>
 
-                <td>
-                    <a
-                        href="/edit_attendance/{{ record[0] }}"
-                        class="edit-button"
-                    >
-                        Edit
-                    </a>
+                {% for record in attendance_records %}
 
-                    <form
-                        action="/delete_attendance/{{ record[0] }}"
-                        method="POST"
-                        style="display:inline;"
-                        onsubmit="return confirm('Are you sure you want to delete this attendance record?');"
-                    >
-                        <button
-                            type="submit"
-                            class="delete-button"
-                        >
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
+                <tr>
+                    <td>{{ record[0] }}</td>
+                    <td>{{ record[1] }}</td>
+                    <td>{{ record[2] }} {{ record[3] }}</td>
+                    <td>{{ record[4] }}</td>
+                    <td>{{ record[5] }}</td>
+                    <td>{{ record[6] }}</td>
+                    <td>{{ record[7] }}</td>
 
-            {% else %}
+                    {% if can_manage_attendance %}
+                    <td>
+                        <a
+                            href="{{ url_for(
+                                'edit_attendance',
+                                attendance_id=record[0]
+                            ) }}"
+                            class="edit-button">
+                            Edit
+                        </a>
 
-            <tr>
-                <td colspan="8" class="no-results">
-                    No attendance records found.
-                </td>
-            </tr>
+                        <form
+                            action="{{ url_for(
+                                'delete_attendance',
+                                attendance_id=record[0]
+                            ) }}"
+                            method="POST"
+                            style="display: inline;"
+                            onsubmit="return confirm(
+                                'Are you sure you want to delete this attendance record?'
+                            );">
 
-            {% endfor %}
+                            <button
+                                type="submit"
+                                class="delete-button">
+                                Delete
+                            </button>
 
-        </tbody>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
 
-    </table>
+                {% else %}
+
+                <tr>
+                    <td
+                        colspan="{{ 8 if can_manage_attendance else 7 }}"
+                        class="no-results">
+                        No attendance records found.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 
 </body>
 </html>
-```

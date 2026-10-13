@@ -161,6 +161,7 @@
             background-color: white;
             border-radius: 8px;
             border: 1px solid #ddd;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
@@ -221,6 +222,14 @@
             text-align: center;
             padding: 20px;
             color: #777;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 2px;
         }
 
         @media (max-width: 600px) {
@@ -300,10 +309,14 @@
     <!-- Main Actions and Download Buttons -->
     <div class="actions">
 
+        <!-- Only authorized users can add payments -->
+        {% if can_manage_finances %}
         <a href="{{ url_for('add_payment') }}" class="button">
             Add Payment
         </a>
+        {% endif %}
 
+        <!-- CSV download remains available -->
         <a
             href="{{ url_for('download_payments',
                 search=search,
@@ -314,6 +327,7 @@
             Download Payments CSV
         </a>
 
+        <!-- PDF download remains available -->
         <a
             href="{{ url_for('download_payments_pdf',
                 search=search,
@@ -341,12 +355,14 @@
                 class="search-input"
                 placeholder="Search Payment ID or Member ID"
                 value="{{ search }}"
+                aria-label="Search payment ID or member ID"
             >
 
             <input
                 type="date"
                 name="payment_date"
                 value="{{ payment_date }}"
+                aria-label="Filter by payment date"
             >
 
             <input
@@ -354,9 +370,10 @@
                 name="payment_type"
                 placeholder="Payment Type"
                 value="{{ payment_type }}"
+                aria-label="Filter by payment type"
             >
 
-            <select name="status">
+            <select name="status" aria-label="Filter by payment status">
                 <option value="">All Statuses</option>
 
                 <option
@@ -402,7 +419,11 @@
                     <th>Payment Date</th>
                     <th>Payment Type</th>
                     <th>Status</th>
+
+                    <!-- Only authorized users see Actions -->
+                    {% if can_manage_finances %}
                     <th>Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
 
@@ -418,6 +439,8 @@
                     <td>{{ payment[4] }}</td>
                     <td>{{ payment[5] }}</td>
 
+                    <!-- Edit and Delete are restricted to managers -->
+                    {% if can_manage_finances %}
                     <td>
                         <a
                             href="{{ url_for('edit_payment',
@@ -441,12 +464,15 @@
 
                         </form>
                     </td>
+                    {% endif %}
                 </tr>
 
                 {% else %}
 
                 <tr>
-                    <td colspan="7" class="no-results">
+                    <td
+                        colspan="{{ 7 if can_manage_finances else 6 }}"
+                        class="no-results">
                         No payments found.
                     </td>
                 </tr>

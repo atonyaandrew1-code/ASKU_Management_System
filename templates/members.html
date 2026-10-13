@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -372,11 +372,15 @@
 
             <div class="top-actions">
 
+                <!-- Only authorized users can add members -->
+                {% if can_manage_members %}
                 <a href="/add_member"
                    class="back-button add-button">
                     Add Member
                 </a>
+                {% endif %}
 
+                <!-- CSV download remains available -->
                 <a
                     href="{{ url_for('download_members',
                         search=search,
@@ -385,6 +389,7 @@
                     Download Members CSV
                 </a>
 
+                <!-- PDF download remains available -->
                 <a
                     href="{{ url_for('download_members_pdf',
                         search=search,
@@ -456,7 +461,11 @@
                         <th>Email</th>
                         <th>Date Joined</th>
                         <th>Status</th>
+
+                        <!-- Only show Action column to managers -->
+                        {% if can_manage_members %}
                         <th>Action</th>
+                        {% endif %}
                     </tr>
                 </thead>
 
@@ -471,6 +480,8 @@
                         <td>{{ member[5] }}</td>
                         <td>{{ member[6] }}</td>
 
+                        <!-- Only managers see Edit -->
+                        {% if can_manage_members %}
                         <td>
                             <a
                                 href="/edit_member/{{ member[0] }}"
@@ -478,11 +489,14 @@
                                 Edit
                             </a>
                         </td>
+                        {% endif %}
                     </tr>
 
                     {% else %}
                     <tr>
-                        <td colspan="8" class="no-results">
+                        <td
+                            colspan="{{ 8 if can_manage_members else 7 }}"
+                            class="no-results">
                             No members found.
                         </td>
                     </tr>
@@ -495,4 +509,3 @@
 
 </body>
 </html>
-```

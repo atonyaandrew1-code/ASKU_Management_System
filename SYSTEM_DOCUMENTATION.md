@@ -1,856 +1,641 @@
-# ASKU Management System
+# ASKU MANAGEMENT SYSTEM
+
+## Complete System Documentation
+
+**Project Name:** ASKU Management System
+**Organization:** Actuarial Students' Association of Kenyatta University (ASKU)
+**Application Type:** Web-Based Management System
+**Backend:** Python and Flask
+**Database:** PostgreSQL
+**Interface:** HTML, CSS, and responsive web pages
+**Repository:** https://github.com/atonyaandrew1-code/ASKU_Management_System
+
+---
+
+## Table of Contents
+
+1. System Overview
+2. Project Objectives
+3. Technologies Used
+4. System Architecture
+5. System Modules
+6. User Roles and Permissions
+7. Database Design
+8. Main System Features
+9. Security and Access Control
+10. System Workflows
+11. Testing and Verification
+12. Installation and Setup
+13. Database Backup and Recovery
+14. Maintenance and Future Improvements
+15. Conclusion
+
+---
 
 ## 1. System Overview
 
-The ASKU Management System is a web-based management system developed to help ASKU manage and track its members, activities, attendance, financial records and users.
+The ASKU Management System is a web-based application designed to support the management of members and administrative activities within the Actuarial Students' Association of Kenyatta University.
 
-The system provides controlled access based on user roles and permissions. It is designed to make organizational records easier to manage, retrieve, and maintain.
+The system provides a centralized platform for storing and managing member information, recording attendance, organizing activities, tracking payments and financial transactions, managing user accounts, and accessing reports.
 
-## 2. Main Objectives
+The application uses Python with the Flask framework for its backend logic and PostgreSQL for persistent data storage. Its web interface allows authorized users to access the system through a browser.
 
-The system is designed to:
+The system is intended to improve record accuracy, accountability, information accessibility, and continuity of operations when student leaders or administrators change.
 
-- Manage ASKU member records.
-- Generate and maintain member identification numbers.
-- Manage activities
-- Record member attendance.
-- Manage payments and transactions.
-- Manage system users.
-- Control access according to user roles and permissions.
-- Provide a centralized database for ASKU records.
-- Maintain traceable records for future reference.
+## 2. Project Objectives
+
+The main objectives of the ASKU Management System are:
+
+* To maintain a centralized database of association members.
+* To simplify the registration and management of members.
+* To record attendance at association activities.
+* To manage association activities and related information.
+* To record and manage member payments.
+* To maintain financial transaction records.
+* To provide controlled access based on user roles and permissions.
+* To support administrative reporting and review.
+* To reduce dependence on scattered spreadsheets and manual records.
+* To preserve organizational information for future association leaders.
+* To improve accountability and the traceability of administrative operations.
 
 ## 3. Technologies Used
 
-- Python
-- Flask
-- PostgreSQL
-- psycopg2
-- HTML
-- CSS
-- Git
-- GitHub
-- Visual Studio Code
+| Technology      | Purpose                                          |
+| --------------- | ------------------------------------------------ |
+| Python          | Main programming language                        |
+| Flask           | Web application framework                        |
+| PostgreSQL      | Relational database management system            |
+| HTML            | Web page structure                               |
+| CSS             | Web page styling and responsive layouts          |
+| psycopg2-binary | Connection between Python and PostgreSQL         |
+| python-dotenv   | Loading configuration from environment variables |
+| bcrypt          | Password hashing                                 |
+| Git             | Version control                                  |
+| GitHub          | Remote source-code repository                    |
+| Render          | Hosting and deployment, where configured         |
 
-## 4. Main System Modules
+The project uses a `requirements.txt` file to identify the Python packages required by the application.
 
-### 4.1 Members
+## 4. System Architecture
 
-The Members module manages ASKU member records.
+The system follows a web application architecture consisting of three main layers.
 
-It supports:
+### 4.1 Presentation Layer
 
-- Adding members.
-- Viewing members.
-- Editing member information.
-- Maintaining member identification numbers.
-- Tracking member status.
+This layer contains the HTML templates and CSS used to display the application in a web browser.
 
-### 4.2 Activities
+It provides pages and forms for viewing records, entering information, searching, filtering, and performing authorized administrative operations.
 
-The Activities module manages organizational activities.
+### 4.2 Application Layer
 
-It supports:
+This layer is implemented using Python and Flask.
 
-- Creating activities.
-- Viewing activities.
-- Recording activity dates.
-- Recording locations.
-- Tracking who created an activity.
+It handles incoming requests, user authentication, session management, permission checks, form submissions, database operations, and page navigation.
 
-### 4.3 Attendance
+### 4.3 Database Layer
 
-The Attendance module records member participation in activities.
+This layer uses PostgreSQL to store application records, including members, activities, attendance, payments, transactions, users, roles, and permissions.
 
-It stores:
+The database supports persistent storage and relationships between related records.
 
-- Member.
-- Activity.
-- Attendance date.
-- Attendance status.
+### 4.4 General Request Flow
 
-### 4.4 Events
+1. A user opens the application in a browser.
+2. The user logs in where authentication is required.
+3. Flask receives the requested page or form submission.
+4. The application checks the relevant authentication and authorization requirements.
+5. Authorized database operations are performed.
+6. The application returns a response to the browser.
 
-### 4.5 Payments
+## 5. System Modules
 
-The Payments module records member payment information and allows authorized users to manage payment records.
+### 5.1 Dashboard
 
-### 4.6 
+The dashboard serves as the main navigation page after successful login.
 
+It provides access to the system modules available to the authenticated user, depending on the application's role and permission configuration.
 
-### 4.7 Transactions
+The dashboard also incorporates the ASKU identity and navigation links to help users move between sections.
 
-The Transactions module records financial transactions and their related details.
+### 5.2 Member Management
 
-### 4.8 User Management
+The member management module stores and maintains information about association members.
 
-The User Management module allows authorized administrators to:
+Key functions include:
 
-- Add users.
-- View users.
-- Edit users.
-- Manage user accounts.
-- Control access through assigned roles.
+* Adding new members.
+* Viewing member records.
+* Editing member information.
+* Searching for members.
+* Filtering member records by status.
+* Maintaining unique member identification numbers.
+* Restricting member management operations according to permissions.
 
-### 4.9 Authentication
+Member records may contain the member ID, first name, last name, phone number, email address, date joined, membership status, and record creation timestamp.
 
-The authentication system provides:
+The current member ID format is designed to include the association prefix, a sequential number, and the joining year, for example `ASKU/001/2026`.
 
-- Login.
-- Logout.
-- Session management.
-- Protected pages.
-- Unauthorized-access protection.
+The exact format and numbering sequence should remain consistent with the implementation currently deployed.
 
-## 5. User Roles and Access Control
+### 5.3 Activities Management
 
-The system uses role-based access control to determine what each user can access and manage.
+The activities module supports the recording and management of association activities.
 
-### 5.1 Administrator
+Key functions include:
 
-The Administrator has the highest level of access.
+* Adding activities.
+* Viewing activity records.
+* Editing activity details.
+* Deleting activities when permitted and when database relationships allow it.
+* Recording activity names, dates, locations, and creator information.
 
-The Administrator can:
+Activities provide a reference point for attendance records.
 
-- Access the dashboard.
-- Manage users.
-- Manage members.
-- Manage activities.
-- Manage attendance.
-- Manage payments.
-- Manage transactions.
-- Access management functions permitted by the system.
+The system should prevent the deletion of an activity when associated attendance records would cause a database integrity problem.
 
-### 5.2 Treasurer
+### 5.4 Attendance Management
 
-The Treasurer has access to financial management functions according to the permissions assigned to the role.
+The attendance module records member participation in association activities.
 
-These include relevant functions for:
+Key functions include:
 
-- Payments.
-- Transactions.
-- Financial records.
+* Recording attendance.
+* Viewing attendance records.
+* Editing attendance information.
+* Deleting attendance records when authorized.
+* Associating attendance records with members and activities.
 
-### 5.3 Secretary
+Attendance records help the association monitor participation and maintain historical records of activities.
 
-The Secretary has access to organizational and record-management functions according to the permissions assigned to the role.
+### 5.5 Payments Management
 
-These include relevant functions for:
+The payments module records payments associated with members.
 
-- Members.
-- Activities.
-- Attendance.
-- Events.
-- Other records permitted by the assigned permissions.
+Depending on the fields implemented, payment records include:
 
-### 5.4 Member
+* Payment ID.
+* Member ID.
+* Amount.
+* Payment date.
+* Payment type.
+* Payment status.
 
-The Member role provides limited access to the system.
+Key functions include adding, viewing, searching, filtering, editing, and deleting payment records according to the user's permissions.
 
-Members can access only the functions and information permitted by their assigned permissions.
+Payment records support financial administration and reporting.
 
-### 5.5 View-Only Access
+### 5.6 Transactions Management
 
-Some permissions are restricted to viewing information without allowing the user to modify or delete records.
+The transactions module stores financial transaction records.
 
-This helps protect important organizational records while still allowing authorized users to access information.
+Transaction information may include:
 
-## 6. Database
+* Transaction ID.
+* Member ID, where applicable.
+* Transaction type.
+* Amount.
+* Transaction date.
+* Description.
+* Reference number.
+* Transaction timestamp.
 
-The ASKU Management System uses PostgreSQL as its database management system.
+The module provides a record of financial movements and supports accountability by preserving relevant transaction details.
 
-### Database Name
+### 5.7 User Management
 
-```text
+The user management module controls the accounts used to access the application.
 
-Main Database Tables
+Key functions include:
 
-The system currently contains the following main tables:
+* Creating user accounts.
+* Assigning roles.
+* Managing account information.
+* Activating or deactivating accounts, where supported.
+* Restricting user administration to authorized personnel.
 
-members
-activities
-attendance
-transactions
-users
-roles
-permissions
-role_permissions
-6.1 Members Table
+User accounts are associated with roles and, where applicable, member records.
 
-Stores information about ASKU members, including:
+Passwords should be stored as secure password hashes rather than plain text.
 
-Member ID
-First name
-Last name
-Phone
-Email
-Date joined
-Status
-Created date
+### 5.8 Authentication and Session Management
 
-Member IDs use the ASKU identification format, for example:
+The authentication module controls access to protected areas of the system.
 
-ASKU/001
-ASKU/002
-ASKU/003
-6.2 Activities Table
+It supports login and logout operations and uses session management to maintain authenticated user state.
 
-Stores information about organizational activities, including:
+Protected routes should reject requests from unauthenticated users. Authenticated users should also be prevented from performing operations for which they lack permission.
 
-Activity ID
-Activity name
-Activity date
-Location
-Created by
-6.3 Attendance Table
+### 5.9 Reports
 
-Stores member attendance information, including:
+The reports module provides access to supported summaries of association records.
 
-Attendance ID
-Member ID
-Activity ID
-Attendance date
-Attendance status
-6.4
-6.5 Transactions Table
+The information available depends on the report queries and templates implemented in the application.
 
-Stores financial transaction records, including:
+Reports should be accessible only to users whose assigned permissions allow them to view them.
 
-Transaction ID
-Member ID
-Transaction type
-Amount
-Date
-Description
-Reference number
-Time-related transaction information
-6.6 Users Table
+**Note:** Contributions and Events are not included as active modules in the current documented system scope.
 
-Stores system user accounts and their assigned access information.
+## 6. User Roles and Permissions
 
-6.7 Roles Table
+The system uses role-based access control. A user's role determines which operations the user is allowed to perform.
 
-Stores the roles used for controlling system access.
+The configured roles are:
 
-6.8 Permissions Table
+| Role        | General Responsibility                                                               |
+| ----------- | ------------------------------------------------------------------------------------ |
+| Admin       | System administration and authorized management operations                           |
+| Chairperson | Association leadership and permitted member/activity management                      |
+| Treasurer   | Financial administration and authorized financial reporting                          |
+| Secretary   | Member administration and permitted reporting                                        |
+| Member      | Viewing permitted member, activity, attendance, payment, and transaction information |
 
-Stores individual system permissions.
+### 6.1 Permission Types
 
-6.9 Role Permissions Table
+The system includes permission identifiers such as:
 
-Links roles to the permissions assigned to them.
+* `manage_members` — manage member records.
+* `manage_activities` — manage activities and associated operations assigned to this permission.
+* `view_reports` — access authorized reports.
+* `manage_users` — manage application user accounts.
+* `manage_finances` — manage authorized payment and financial transaction operations.
+* `view_members` — view member records.
+* `view_attendance` — view attendance records.
+* `view_transactions` — view transaction records.
+* `view_payments` — view payment records.
+* `view_activities` — view activity records.
 
-## 7. System Features
+The permissions assigned to each role are maintained through the `roles`, `permissions`, and `role_permissions` database tables.
 
-### 7.1 User Authentication
+Actual access must be determined by the permissions configured in the running application. The role descriptions above are general summaries and do not replace the application's permission checks.
 
-The system provides secure user authentication through a login page.
+## 7. Database Design
 
-Users must provide a valid username and password before accessing the management dashboard.
+The application uses PostgreSQL as its relational database.
 
-The system also provides a logout function that terminates the user's active session.
+The intended current database tables are listed below.
 
-### 7.2 Role-Based Access Control
+| Table              | Purpose                                          |
+| ------------------ | ------------------------------------------------ |
+| `members`          | Stores association member information            |
+| `activities`       | Stores association activity information          |
+| `attendance`       | Records member attendance at activities          |
+| `payments`         | Stores payment records                           |
+| `transactions`     | Stores financial transaction records             |
+| `users`            | Stores application user accounts                 |
+| `roles`            | Defines application roles                        |
+| `permissions`      | Defines individual system permissions            |
+| `role_permissions` | Associates roles with their permitted operations |
 
-The system uses user roles and permissions to control access to different functions.
+### 7.1 Relationships
 
-The main roles include:
+The database uses relationships to connect records that belong together.
 
-- Administrator
-- Chairperson
-- Treasurer
-- Secretary
-- Member
+Examples include:
 
-Permissions are assigned to roles through the `role_permissions` table.
+* Attendance records reference members and activities.
+* Payment records reference members where the payment schema defines that relationship.
+* User accounts may reference member records.
+* User accounts reference assigned roles.
+* Role-permission associations connect roles to individual permissions.
 
-This prevents users from accessing functions that they are not authorized to use.
+Foreign keys and other database constraints help preserve data integrity. The exact behavior when a referenced record is updated or deleted depends on the constraints configured for that relationship.
 
-### 7.3 Member Management
+### 7.2 Member Identification
 
-The system allows authorized users to:
+Member IDs are used to identify members across the system.
 
-- View members
-- Add new members
-- Edit member information
-- Manage member status
-- Search and manage member records
+The current intended format is:
 
-Each member is identified using a unique Member ID.
+`ASKU/001/2026`
 
-The standard Member ID format is:
+In this example:
 
-`ASKU/001`
+* `ASKU` identifies the association.
+* `001` represents the sequential member number.
+* `2026` represents the joining year.
 
-### 7.4 Member ID Management
+The application should validate member IDs and prevent duplicate identifiers.
 
-Administrators can change a member's Member ID when necessary.
+### 7.3 Database Configuration
 
-Member IDs must follow the format:
+Database connection settings are stored in environment variables rather than being written directly into application code.
 
-`ASKU/###`
+The project uses a `.env` file for local configuration. This file should remain private and should not be committed to a public repository.
 
-For example:
+The expected configuration variables are:
 
-`ASKU/005`
+* `DB_HOST`
+* `DB_NAME`
+* `DB_USER`
+* `DB_PASSWORD`
+* `DB_PORT`
 
-can be changed to:
+The actual values depend on the local or hosted PostgreSQL environment.
 
-`ASKU/010`
+## 8. Main System Features
 
-The system prevents duplicate Member IDs.
+The system includes the following general features, subject to the functionality currently implemented and deployed:
 
-When a Member ID is changed, PostgreSQL automatically updates the corresponding Member ID in related tables using `ON UPDATE CASCADE`.
+### 8.1 Record Management
 
-The related tables include:
+Authorized users can create, view, update, and, where permitted, delete records in supported modules.
 
-- Attendance
-- Payments
-- Transactions
-- Users
+### 8.2 Search and Filtering
 
-This maintains database referential integrity.
+Search and filtering features help users locate relevant records without manually reviewing the entire database.
 
-### 7.5 User Management
+The member and payment pages support search and filtering based on implemented fields.
 
-Authorized administrators can manage system users.
+### 8.3 Responsive Interface
 
-User management includes:
+The interface is designed to be usable on desktop and mobile screens. Responsive styling helps pages, navigation links, forms, and buttons adapt to different screen sizes.
 
-- Adding users
-- Editing users
-- Deleting users
-- Assigning roles
-- Activating or deactivating users
+### 8.4 Association Branding
 
-User accounts are linked to members through the `member_id` field.
+The interface includes the ASKU logo and associated visual branding where configured.
 
-### 7.6 Activities Management
+### 8.5 Financial Record Keeping
 
-The system allows authorized users to manage organization activities.
+The payments and transactions modules provide structured records for financial administration.
 
-Activities contain information such as:
+### 8.6 Role-Based Access
 
-- Activity ID
-- Activity name
-- Activity date
-- Location
-- User who created the activity
+The application uses roles and permissions to limit access to protected pages and management operations.
 
-### 7.7 Attendance Management
+### 8.7 Persistent Storage
 
-The attendance module records member participation in activities.
+Records are stored in PostgreSQL, allowing data to remain available between application sessions.
 
-Attendance records are linked to:
+## 9. Security and Access Control
 
-- Members
-- Activities
-- Attendance dates
-- Attendance status
+Security is an important part of the ASKU Management System because the application handles member information, account credentials, and financial records.
 
-This allows the organization to track participation over time.
+The following security measures should be maintained.
 
-### 7.8 Payments Management
+### 9.1 Authentication
 
-The system records payments made by members.
+Users should log in before accessing protected areas of the application.
 
-Payment records are associated with individual members and can be used to maintain financial records.
+### 9.2 Authorization
 
-### 7.9 
+Routes and management operations should check the authenticated user's permissions before allowing sensitive actions.
 
-### 7.10 Transactions Management
+### 9.3 Password Protection
 
-The transactions module records financial transactions involving members.
+Passwords should be hashed using the application's password-hashing implementation. Plain-text passwords should never be stored in the database.
 
-Transaction information includes:
+### 9.4 Environment Variables
 
-- Transaction ID
-- Member ID
-- Transaction type
-- Amount
-- Date
-- Description
-- Reference number
+Database credentials and other private configuration values should be stored in environment variables.
 
-### 7.11 Events Management
+The `.env` file must not be uploaded to a public GitHub repository.
 
+### 9.5 Session Protection
 
-### 7.12 Dashboard
+The application should protect authenticated sessions and prevent unauthenticated access to protected routes.
 
-The dashboard provides an overview of important system information.
+### 9.6 Data Integrity
 
-It displays summary information including:
+Database constraints should be used to prevent invalid references and preserve consistency between related records.
 
-- Total members
-- Total payments
-- Total activities
-- Total attendance records
-- Total transactions
+### 9.7 Production Configuration
 
-The dashboard also provides navigation links to the main management modules.
+Before public production use, the application should be configured with secure session settings, a strong secret key, HTTPS, appropriate database credentials, and debug mode disabled.
 
-### 7.13 Database Integrity
+The Flask development server and `debug=True` are intended for local development, not production deployment.
 
-The system uses PostgreSQL foreign-key relationships to maintain consistency between related records.
+## 10. System Workflows
 
-Foreign-key relationships connect members with:
+### 10.1 User Login
 
-- Attendance
-- Payments
-- Transactions
-- Users
+1. The user opens the application.
+2. The user enters login credentials.
+3. The application validates the credentials.
+4. If authentication succeeds, the application establishes the user's authenticated session.
+5. The user is directed to the appropriate page.
+6. If authentication fails, access is denied and an appropriate message is displayed.
 
-The Member ID relationships use `ON UPDATE CASCADE` so that changes to a Member ID are automatically reflected in related records.
+### 10.2 Adding a Member
 
-### 7.14 Security
+1. An authorized user opens the member management page.
+2. The user selects the option to add a member.
+3. The user enters the required member information.
+4. The application validates the submitted data.
+5. The application generates or validates the member ID according to the implemented rules.
+6. The record is saved to PostgreSQL.
+7. The updated member list is displayed.
 
-The system includes several security controls:
+### 10.3 Recording Attendance
 
-- Password authentication
-- Password hashing using bcrypt
-- Session-based authentication
-- Role-based permissions
-- Protected management routes
-- Admin-only Member ID modification
-- Prevention of duplicate Member IDs
-- Database foreign-key constraints
+1. An authorized user opens attendance management.
+2. The user selects the relevant activity and member.
+3. The attendance details are submitted.
+4. The application validates the information.
+5. The attendance record is saved.
+6. The record becomes available for authorized viewing and reporting.
 
-## 8. System Workflow
+### 10.4 Recording a Payment
 
-### 8.1 User Login
+1. An authorized user opens payment management.
+2. The user enters the payment information.
+3. The application validates the required fields.
+4. The payment record is saved to PostgreSQL.
+5. The updated payment information becomes available to authorized users.
 
-1. The user opens the ASKU Management System.
-2. The system displays the login page if the user is not authenticated.
-3. The user enters a username and password.
-4. The system verifies the credentials.
-5. The user's role and permissions are loaded.
-6. The user is redirected to the dashboard.
+### 10.5 Recording a Transaction
 
-### 8.2 Dashboard Access
+1. An authorized user opens transaction management.
+2. The user enters the transaction details.
+3. The application validates the submitted information.
+4. The transaction is saved to the database.
+5. Authorized users can view the transaction record.
 
-After successful login, the user is taken to the dashboard.
+### 10.6 Managing User Access
 
-The dashboard displays summary information and provides access to system modules based on the user's permissions.
+1. An authorized administrator opens user management.
+2. The administrator creates or updates an account.
+3. A role is assigned to the account.
+4. The application's permission configuration determines which operations the user may perform.
+5. The user accesses only the functionality permitted by the application's authorization rules.
 
-### 8.3 Member Management Workflow
+## 11. Testing and Verification
 
-Authorized users can:
+System testing is necessary to confirm that the application behaves as intended.
 
-1. Open the Members module.
-2. View existing members.
-3. Add new members.
-4. Edit member information.
-5. Update member status.
+The following areas have previously been reported as tested during development. They should be retested after significant code changes or deployment updates.
 
-Administrators can additionally change Member IDs.
+| Test Area              | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| Login and logout       | Confirm authentication and session termination                       |
+| Session protection     | Confirm protected pages require authentication                       |
+| Role testing           | Confirm users receive access appropriate to their roles              |
+| Unauthorized access    | Confirm restricted operations are denied                             |
+| Member management      | Test member creation, viewing, editing, and deletion where permitted |
+| Activities             | Test activity management operations                                  |
+| Attendance             | Test attendance recording and management                             |
+| Payments               | Test payment management and filtering                                |
+| Transactions           | Test transaction management                                          |
+| User management        | Test user account and role administration                            |
+| Database relationships | Confirm related records remain consistent                            |
+| Responsive layout      | Check usability on desktop and mobile screens                        |
+| Deployment             | Confirm the hosted application connects to the correct database      |
 
-### 8.4 User Management Workflow
+A feature should be described as fully tested only after its current implementation has been verified.
 
-Administrators can:
+Following changes to routes, templates, database schemas, or permissions, regression testing should be performed to identify problems introduced by the changes.
 
-1. Open User Management.
-2. View system users.
-3. Add a new user.
-4. Assign the user a role.
-5. Edit user information.
-6. Activate or deactivate a user.
-7. Delete a user when necessary.
+## 12. Installation and Setup
 
-### 8.5 Activities and Attendance Workflow
+The following procedure describes the general local setup. It assumes Python and PostgreSQL are installed and accessible.
 
-The system allows authorized users to:
+### 12.1 Project Directory
 
-1. Create activities.
-2. View activities.
-3. Record member attendance.
-4. View attendance records.
+The local project directory is:
 
-Attendance records are linked to both the member and the activity.
+`C:\ANDREW\ASKU_Management_System`
 
-### 8.6 Financial Management Workflow
+### 12.2 Install Dependencies
 
-Financial information is managed through the Payments and Transactions modules.
+Open a terminal in the project directory and run:
 
-Authorized users can record and view financial records according to their assigned permissions.
-
-### 8.7 Member ID Change Workflow
-
-Only an administrator can change a Member ID.
-
-The workflow is:
-
-1. Administrator opens the Members module.
-2. Administrator selects a member.
-3. Administrator opens the Edit Member page.
-4. Administrator enters the new Member ID.
-5. The system validates the Member ID format.
-6. The system checks whether the new ID already exists.
-7. If valid, the Member ID is updated.
-8. PostgreSQL automatically updates related records through `ON UPDATE CASCADE`.
-9. The administrator is returned to the Members list.
-
-### 8.8 Logout Workflow
-
-When a user selects Logout:
-
-1. The active session is terminated.
-2. The user is redirected to the login page.
-3. Protected pages can no longer be accessed without logging in again.
-
-### 8.9 Access Control Workflow
-
-When a user attempts to access a protected function:
-
-1. The system checks whether the user is logged in.
-2. The system identifies the user's role.
-3. The system checks the permissions assigned to that role.
-4. If the required permission exists, access is granted.
-5. If the permission does not exist, access is denied.
-
-## 9. Testing and Verification
-
-The ASKU Management System was tested after development to verify that the main functions operate correctly.
-
-### 9.1 Authentication Testing
-
-The following were tested:
-
-- Valid user login
-- Invalid username or password
-- Logout
-- Session protection
-- Access to the dashboard after authentication
-
-The authentication functions were successfully tested.
-
-### 9.2 Role Testing
-
-The following roles were tested:
-
-- Administrator
-- Chairperson
-- Treasurer
-- Secretary
-- Member
-
-Role-based access was tested to ensure that users can only access functions allowed by their permissions.
-
-### 9.3 Member Management Testing
-
-The following functions were tested:
-
-- Viewing members
-- Adding members
-- Editing members
-- Updating member information
-- Updating member status
-- Member ID validation
-- Duplicate Member ID prevention
-
-The functions operated correctly during testing.
-
-### 9.4 Member ID Change Testing
-
-The administrator Member ID change feature was tested by changing:
-
-`ASKU/005`
-
-to:
-
-`ASKU/010`
-
-The test confirmed that:
-
-- The new Member ID was accepted.
-- The old Member ID was removed.
-- Duplicate IDs are prevented.
-- The related transaction record was automatically updated.
-- The related user account was automatically updated.
-- Foreign-key relationships remained intact.
-
-The test confirmed that `ON UPDATE CASCADE` is functioning correctly.
-
-### 9.5 User Management Testing
-
-User management functions were tested, including:
-
-- Adding users
-- Editing users
-- Deleting users
-- Assigning roles
-- Activating and deactivating users
-- Access control for user management
-
-The functions were successfully tested.
-
-### 9.6 Activities Testing
-
-Activities were tested by:
-
-- Adding activities
-- Viewing activities
-- Editing activities
-- Managing activity information
-
-The activities module operated correctly.
-
-### 9.7 Attendance Testing
-
-Attendance functionality was tested by:
-
-- Recording attendance
-- Viewing attendance records
-- Linking attendance to members
-- Linking attendance to activities
-
-The attendance module operated correctly.
-
-### 9.8 Financial Module Testing
-
-The following modules were tested:
-
-- Payments
-- Transactions
-
-The system successfully recorded and displayed financial information.
-
-### 9.9 Events Testing
-
-
-### 9.10 Dashboard Testing
-
-The dashboard was tested to verify that summary figures are displayed correctly.
-
-The following dashboard statistics were tested:
-
-- Total members
-- Total payments
-- Total activities
-- Total attendance records
-- Total transactions
-
-### 9.11 Database Integrity Testing
-
-Database relationships were tested to ensure that related records remain connected to the correct member.
-
-The Member ID cascade feature was specifically tested and confirmed to update related records automatically.
-
-### 9.12 Overall Test Result
-
-The major system modules and role-based access controls were tested successfully.
-
-The system is currently functioning as expected in the local development environment.
-
-
-## 10. Installation and Setup
-
-### 10.1 Requirements
-
-The ASKU Management System requires the following software:
-
-- Python
-- PostgreSQL
-- pgAdmin
-- Flask
-- psycopg2
-- bcrypt
-- Git
-- A modern web browser
-
-### 10.2 Project Structure
-
-The main project directory is:
-
-`ASKU_Management_System`
-
-The project contains the following main files and folders:
-
-- `app.py` — Main Flask application
-- `database.py` — Database connection configuration
-- `requirements.txt` — Python dependencies
-- `.gitignore` — Files excluded from Git
-- `templates/` — HTML templates
-- `static/` — Static files such as CSS and other frontend resources
-- `SYSTEM_DOCUMENTATION.md` — System documentation
-
-### 10.3 Database Setup
-
-The system uses a PostgreSQL database named:
-
-`Asku_management`
-
-The database contains the tables required to manage:
-
-- Members
-- Users
-- Roles
-- Permissions
-- Activities
-- Attendance
-- Payments
-- Transactions
-- Events
-
-### 10.4 Python Environment
-
-The required Python packages are listed in:
-
-`requirements.txt`
-
-They can be installed using:
-
-```text
+```bash
 pip install -r requirements.txt
+```
 
-10.5 Running the Application
+The requirements file should contain the dependencies used by the project, including Flask, psycopg2-binary, python-dotenv, and bcrypt.
 
-From the project directory, the Flask application can be started using:
+### 12.3 Configure Environment Variables
 
+Create or update the local `.env` file with the correct database connection settings.
+
+Example structure:
+
+```env
+DB_HOST=localhost
+DB_NAME=Asku_management
+DB_USER=your_database_username
+DB_PASSWORD=your_database_password
+DB_PORT=5432
+```
+
+Replace the example username and password with the actual PostgreSQL credentials.
+
+Do not share real credentials in documentation, screenshots, or public repositories.
+
+### 12.4 Prepare the Database
+
+Ensure that the PostgreSQL database exists and that the required application tables have been created or restored from a valid backup.
+
+The database name used during local development is `Asku_management`.
+
+### 12.5 Start the Application
+
+From the project directory, run:
+
+```bash
 python app.py
+```
 
-When the application starts successfully, it runs on the local development server.
+When the local Flask server starts successfully, open:
 
-The system can then be accessed through:
+`http://127.0.0.1:5000`
 
-http://127.0.0.1:5000
+The exact startup behavior depends on the current `app.py` configuration.
 
-10.6 Database Connection
+### 12.6 GitHub Repository
 
-The database connection is configured in:
+The project repository is:
 
-database.py
+https://github.com/atonyaandrew1-code/ASKU_Management_System
 
-The application connects to the local PostgreSQL server and the Asku_management database.
+Before pushing changes, confirm that private configuration files, database passwords, and backup files containing sensitive data are excluded from the repository.
 
-10.7 Git and Backup
+## 13. Database Backup and Recovery
 
-The project is maintained using Git for version control.
+Regular database backups help protect association records against accidental deletion, corruption, or system failure.
 
-The project has been backed up to GitHub to preserve the source code and development history.
+### 13.1 Backup
 
-Git is used to:
+A PostgreSQL backup can be created using `pg_dump`.
 
-Track changes
-Create commits
-Maintain project history
-Push backups to GitHub
-Restore previous versions when necessary
-10.8 Development Environment
+Example:
 
-The system was developed and tested locally using:
+```bash
+pg_dump -U your_database_username -d Asku_management -F c -f backups/Asku_management_backup.dump
+```
 
-Windows
-Visual Studio Code
-Python
-Flask
-PostgreSQL
-pgAdmin
-Git
+Replace the example username with the correct PostgreSQL username.
 
-The application currently operates as a local development system.
+The command assumes that the `backups` directory exists and that the PostgreSQL command-line utilities are installed.
 
-## 11. Maintenance and Future Improvements
+### 13.2 Recovery
 
-The ASKU Management System can be expanded and improved as the organization's needs grow.
+A custom-format backup can be restored using `pg_restore` into an appropriate target database.
 
-### 11.1 Possible Future Improvements
+Example:
 
-Future versions of the system may include:
+```bash
+pg_restore -U your_database_username -d target_database_name backups/Asku_management_backup.dump
+```
 
-- Advanced search and filtering
-- Financial reports
-- Automated receipt generation
-- PDF report generation
-- Email notifications
-- SMS notifications
-- Improved dashboard charts and analytics
-- Password reset functionality
-- More detailed audit logs
-- Automated database backups
-- Improved mobile responsiveness
-- Deployment to an online server
-- HTTPS security
-- More advanced reporting
+The target database must exist unless the restore procedure is specifically configured to create it.
 
-### 11.2 Database Maintenance
+Restoration should be tested carefully, especially when the target database already contains records.
 
-Regular database maintenance should include:
+### 13.3 Backup Recommendations
 
-- Creating regular backups
-- Checking database integrity
-- Reviewing unused records
-- Monitoring database size
-- Updating database software when necessary
-- Protecting database credentials
+* Create backups regularly.
+* Keep backup files separate from the live database.
+* Restrict access to backup files.
+* Store at least one backup in a secure location separate from the development computer.
+* Test restoration periodically.
+* Do not publish backups containing personal or financial information.
 
-### 11.3 User Account Maintenance
+## 14. Maintenance and Future Improvements
 
-Administrators should regularly review user accounts to ensure that:
+The following improvements may be considered as the system develops.
 
-- Only authorized users have accounts.
-- User roles are correctly assigned.
-- Inactive users are disabled.
-- Former users no longer have unnecessary access.
-- Passwords are kept secure.
+### 14.1 Reporting Enhancements
 
-### 11.4 Security Maintenance
+Add more comprehensive reports and summaries for membership, attendance, payments, and transactions.
 
-The system should be regularly reviewed for security issues.
+### 14.2 Audit Logs
 
-Recommended practices include:
+Maintain records of important administrative actions, including changes to member information, financial records, and user permissions.
 
-- Keeping Python and dependencies updated.
-- Keeping PostgreSQL updated.
-- Protecting the Flask secret key.
-- Using strong passwords.
-- Restricting database access.
-- Regularly reviewing user permissions.
-- Maintaining secure backups.
+### 14.3 Data Export
 
-### 11.5 Backup Strategy
+Provide controlled export options for authorized users who need reports or records for administrative purposes.
 
-The source code should continue to be backed up using Git and GitHub.
+### 14.4 Automated Backups
 
-The PostgreSQL database should also be backed up separately because a Git repository contains the application source code but does not automatically contain the live database records.
+Introduce a reliable backup schedule and monitoring process.
 
-### 11.6 Deployment
+### 14.5 Improved Validation
 
-Before deploying the system for production use, the following should be considered:
+Strengthen form validation, error handling, and duplicate-record prevention.
 
-- Production-grade web hosting
-- Secure PostgreSQL configuration
-- HTTPS
-- Production Flask configuration
-- Secure environment variables
-- Automated database backups
-- Monitoring and logging
-- Access control and server security
+### 14.6 Security Review
 
-### 11.7 System Expansion
+Review every route and sensitive operation to ensure that authentication and authorization checks are consistently applied.
 
-The system has been designed using separate modules so that additional functionality can be introduced without completely redesigning the existing application.
+### 14.7 Deployment Improvements
 
-Future modules may include:
+Use secure production configuration, HTTPS, managed environment variables, reliable database hosting, and appropriate error logging.
 
-- Financial reporting
-- Member communication
-- Document management
-- Meeting management
-- Inventory management
-- Advanced analytics
-- Audit and compliance reporting
+### 14.8 Documentation Updates
 
-## 12. Conclusion
+Update this document whenever major features, database tables, permissions, deployment procedures, or configuration requirements change.
 
-The ASKU Management System provides a centralized platform for managing members, users, activities, attendance, payments and transactions.
+## 15. Conclusion
 
-The system uses PostgreSQL for structured data storage and Flask for the web application.
+The ASKU Management System provides a centralized platform for managing association members, activities, attendance, payments, financial transactions, user accounts, and authorized reports.
 
-Role-based access control ensures that users are given access according to their assigned responsibilities.
+By combining a Flask application with a PostgreSQL database and role-based access control, the system is intended to improve record keeping, accountability, and continuity within ASKU.
 
-The system has been tested across its major modules and user roles. Database relationships have also been verified to maintain data integrity.
+Continued maintenance, testing, backups, and security reviews will help preserve the reliability of the application and support its future development.
 
-The administrator Member ID management feature uses PostgreSQL `ON UPDATE CASCADE` to ensure that changes to a Member ID are automatically reflected in related records.
+---
 
-The application is
- currently operational in the local development environment and can be further enhanced and deployed for production use in the future.
+**Document status:** Development documentation.
+**Maintenance note:** Update this document whenever the actual application implementation or deployment configuration changes.

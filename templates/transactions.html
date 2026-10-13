@@ -1,14 +1,22 @@
-```html
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Transactions - ASKU Management System</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f4f6f8;
+            color: #333;
         }
 
         header {
@@ -18,30 +26,51 @@
             text-align: center;
         }
 
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
         .container {
-            width: 90%;
-            margin: 30px auto;
+            width: 95%;
+            max-width: 1400px;
+            margin: 25px auto;
         }
 
         .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .button {
             display: inline-block;
-            padding: 10px 15px;
+            padding: 11px 16px;
             background-color: #1f4e78;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 10px;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background-color: #163a5a;
         }
 
         .filter-box {
             background-color: white;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             border: 1px solid #ddd;
         }
 
@@ -58,6 +87,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
+            background-color: white;
         }
 
         .search-input {
@@ -69,9 +99,10 @@
             background-color: #1f4e78;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 11px 18px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .search-button:hover {
@@ -79,24 +110,38 @@
         }
 
         .clear-button {
+            display: inline-block;
             background-color: #777;
             color: white;
-            padding: 10px 18px;
+            padding: 11px 18px;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .clear-button:hover {
+            background-color: #555;
         }
 
         .table-container {
+            width: 100%;
             overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
+            min-width: 900px;
             border-collapse: collapse;
             background-color: white;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             border: 1px solid #ddd;
             text-align: left;
@@ -105,6 +150,7 @@
         th {
             background-color: #1f4e78;
             color: white;
+            white-space: nowrap;
         }
 
         tr:nth-child(even) {
@@ -118,7 +164,8 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-bottom: 5px;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .edit-button:hover {
@@ -132,6 +179,8 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 2px;
+            white-space: nowrap;
         }
 
         .delete-button:hover {
@@ -142,6 +191,64 @@
             text-align: center;
             padding: 20px;
             color: #777;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 16px 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            header h2 {
+                font-size: 19px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 15px auto;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .button {
+                width: 100%;
+            }
+
+            .filter-box {
+                padding: 14px;
+            }
+
+            .filter-box form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-box input,
+            .filter-box select,
+            .search-input,
+            .search-button,
+            .clear-button {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 10px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -155,15 +262,25 @@
 
 <div class="container">
 
+    <!-- Page Actions -->
     <div class="actions">
-        <a href="/add_transaction" class="button">Add Transaction</a>
-        <a href="/" class="button">Back to Dashboard</a>
+
+        {% if can_manage_finances %}
+        <a href="{{ url_for('add_transaction') }}" class="button">
+            Add Transaction
+        </a>
+        {% endif %}
+
+        <a href="/" class="button">
+            Back to Dashboard
+        </a>
+
     </div>
 
     <!-- Search and Filters -->
     <div class="filter-box">
 
-        <form method="GET" action="/transactions">
+        <form method="GET" action="{{ url_for('transactions') }}">
 
             <input
                 type="text"
@@ -171,33 +288,41 @@
                 class="search-input"
                 placeholder="Search member ID, type or reference"
                 value="{{ search }}"
+                aria-label="Search transactions"
             >
 
             <input
                 type="date"
                 name="transaction_date"
                 value="{{ transaction_date }}"
+                aria-label="Filter by transaction date"
             >
 
-            <select name="transaction_type">
+            <select
+                name="transaction_type"
+                aria-label="Filter by transaction type">
+
                 <option value="">All Transaction Types</option>
 
-                <option value="Income"
+                <option
+                    value="Income"
                     {% if transaction_type == "Income" %}selected{% endif %}>
                     Income
                 </option>
 
-                <option value="Expense"
+                <option
+                    value="Expense"
                     {% if transaction_type == "Expense" %}selected{% endif %}>
                     Expense
                 </option>
+
             </select>
 
             <button type="submit" class="search-button">
                 Search
             </button>
 
-            <a href="/transactions" class="clear-button">
+            <a href="{{ url_for('transactions') }}" class="clear-button">
                 Clear
             </a>
 
@@ -205,7 +330,9 @@
 
     </div>
 
+    <!-- Transactions Table -->
     <div class="table-container">
+
         <table>
 
             <thead>
@@ -218,7 +345,10 @@
                     <th>Description</th>
                     <th>Reference No</th>
                     <th>Time</th>
+
+                    {% if can_manage_finances %}
                     <th>Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
 
@@ -236,34 +366,45 @@
                     <td>{{ transaction[6] }}</td>
                     <td>{{ transaction[7] }}</td>
 
+                    {% if can_manage_finances %}
                     <td>
                         <a
-                            href="/edit_transaction/{{ transaction[0] }}"
-                            class="edit-button"
-                        >
+                            href="{{ url_for(
+                                'edit_transaction',
+                                transaction_id=transaction[0]
+                            ) }}"
+                            class="edit-button">
                             Edit
                         </a>
 
                         <form
-                            action="/delete_transaction/{{ transaction[0] }}"
+                            action="{{ url_for(
+                                'delete_transaction',
+                                transaction_id=transaction[0]
+                            ) }}"
                             method="POST"
-                            style="display:inline;"
-                            onsubmit="return confirm('Are you sure you want to delete this transaction?');"
-                        >
+                            style="display: inline;"
+                            onsubmit="return confirm(
+                                'Are you sure you want to delete this transaction?'
+                            );">
+
                             <button
                                 type="submit"
-                                class="delete-button"
-                            >
+                                class="delete-button">
                                 Delete
                             </button>
+
                         </form>
                     </td>
+                    {% endif %}
                 </tr>
 
                 {% else %}
 
                 <tr>
-                    <td colspan="9" class="no-results">
+                    <td
+                        colspan="{{ 9 if can_manage_finances else 8 }}"
+                        class="no-results">
                         No transactions found.
                     </td>
                 </tr>
@@ -273,10 +414,10 @@
             </tbody>
 
         </table>
+
     </div>
 
 </div>
 
 </body>
 </html>
-```

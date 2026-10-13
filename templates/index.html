@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +19,7 @@
             color: #333;
         }
 
-        /* Header */
+        /* Header - LOGO POSITION AND STYLING UNCHANGED */
         .header {
             background-color: #1f4e78;
             color: white;
@@ -48,13 +48,14 @@
             font-size: 15px;
             line-height: 1.5;
         }
+
         .tagline {
             font-size: 16px;
             font-style: italic;
             font-weight: bold;
             margin-top: 8px;
             letter-spacing: 1px;
-   }
+        }
 
         /* Main container */
         .container {
@@ -100,7 +101,6 @@
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -118,27 +118,23 @@
             overflow-wrap: anywhere;
         }
 
-        /* Dashboard buttons */
+        /* Dashboard card buttons */
         .card a {
             display: block;
             width: 100%;
             max-width: 220px;
             margin: 8px auto 0;
             padding: 12px 10px;
-
             background-color: #1f4e78;
             color: white;
             text-decoration: none;
             text-align: center;
-
             border-radius: 6px;
             font-size: 14px;
             line-height: 1.4;
-
             white-space: normal;
             overflow-wrap: anywhere;
             flex-shrink: 0;
-
             transition: background-color 0.2s ease;
         }
 
@@ -147,6 +143,50 @@
         }
 
         .card a:focus-visible {
+            outline: 3px solid #f0b429;
+            outline-offset: 3px;
+        }
+
+        /* Bottom account buttons */
+        .account-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 30px 0;
+        }
+
+        .account-buttons a {
+            display: inline-block;
+            min-width: 180px;
+            padding: 12px 18px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .account-buttons .change-password-link {
+            background-color: #1f4e78;
+        }
+
+        .account-buttons .change-password-link:hover {
+            background-color: #163a5a;
+        }
+
+        .account-buttons .logout-link {
+            background-color: #b42318;
+        }
+
+        .account-buttons .logout-link:hover {
+            background-color: #8f1c13;
+        }
+
+        .account-buttons a:focus-visible {
             outline: 3px solid #f0b429;
             outline-offset: 3px;
         }
@@ -200,6 +240,10 @@
                 margin-top: 10px;
                 padding: 12px 8px;
                 font-size: 13px;
+            }
+
+            .account-buttons a {
+                min-width: 160px;
             }
         }
 
@@ -260,16 +304,28 @@
                 padding: 12px 10px;
                 font-size: 14px;
             }
+
+            .account-buttons {
+                flex-direction: column;
+                gap: 12px;
+                margin: 25px 0;
+            }
+
+            .account-buttons a {
+                width: 100%;
+                max-width: 280px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ASKU Header -->
+    <!-- ASKU Header: original logo position preserved -->
     <header class="header">
 
         <h1>ASKU Management System</h1>
+
         <img
             src="{{ url_for('static', filename='images/asku_logo.jpeg') }}"
             alt="ASKU Logo"
@@ -347,8 +403,24 @@
 
         </section>
 
+        <!-- Account buttons at the bottom -->
+        <div class="account-buttons">
+
+            <a
+                href="{{ url_for('change_my_password') }}"
+                class="change-password-link"
+            >Change My Password</a>
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="logout-link"
+                onclick="return confirm('Are you sure you want to log out?');"
+            >Logout</a>
+
+        </div>
+
     </main>
 
 </body>
 </html>
-```
+
