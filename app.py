@@ -12,6 +12,29 @@ from flask import (
 
 from database import get_connection
 
+
+def ensure_user_password_column():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("""
+            ALTER TABLE public.users
+            ADD COLUMN IF NOT EXISTS must_change_password
+            BOOLEAN NOT NULL DEFAULT FALSE;
+        """)
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        cursor.close()
+        connection.close()
+
+
+ensure_user_password_column()
+
+
 def ensure_password_resets_table():
     connection = get_connection()
     cursor = connection.cursor()
